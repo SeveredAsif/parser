@@ -81,15 +81,9 @@ var_declaration
     : t=type_specifier dl=declaration_list sm=SEMICOLON
       {
         writeIntoParserLogFile(
-            "Variable Declaration: type_specifier declaration_list "
-            + $sm.getType()
-            + " at line "
-            + $sm.getLine()
-        );
-        writeIntoParserLogFile(
-            "type_specifier name_line: "
-            + $t.name_line
-        );
+            "Line "
+            + $sm.getLine() + ": var_declaration : type_specifier declaration_list SEMICOLON\n\n" + $t.text + " " + $dl.text + ";\n"
+        );            
       }
     | t=type_specifier de=declaration_list_err sm=SEMICOLON
       {
@@ -113,23 +107,59 @@ type_specifier
     returns [String name_line]
     : INT
       {
+        writeIntoParserLogFile(
+            "Line "
+            + $INT.getLine() + ": type_specifier : INT\n\n" + $INT.getText() + "\n"
+        );        
         $name_line = "type: INT at line" + $INT.getLine();
       }
     | FLOAT
       {
+        writeIntoParserLogFile(
+            "Line "
+            + $FLOAT.getLine() + ": type_specifier : FLOAT\n\n" + $FLOAT.getText() + "\n"
+        );              
         $name_line = "type: FLOAT at line" + $FLOAT.getLine();
       }
     | VOID
       {
+        writeIntoParserLogFile(
+            "Line "
+            + $VOID.getLine() + ": type_specifier : VOID\n\n" + $VOID.getText() + "\n"
+        );              
         $name_line = "type: VOID at line" + $VOID.getLine();
       }
     ;
 
 declaration_list
-    : declaration_list COMMA ID
-    | declaration_list COMMA ID LTHIRD CONST_INT RTHIRD
+    : dec1=declaration_list COMMA ID
+    {
+        writeIntoParserLogFile(
+            "Line "
+            + $ID.getLine() + ": declaration_list : declaration_list COMMA ID\n\n" + $dec1.text + ","+$ID.getText() + "\n"
+        );           
+    }
+    | dec2=declaration_list COMMA ID LTHIRD CONST_INT RTHIRD
+    {
+        writeIntoParserLogFile(
+            "Line "
+            + $ID.getLine() + ": declaration_list : declaration_list COMMA ID LTHIRD CONST_INT RTHIRD\n\n" + $dec2.text+",["+$CONST_INT.getText() + "]\n"
+        );  
+    }
     | ID
+    {
+        writeIntoParserLogFile(
+            "Line "
+            + $ID.getLine() + ": declaration_list : ID\n\n" + $ID.getText() + "\n"
+        );           
+    }
     | ID LTHIRD CONST_INT RTHIRD
+    {
+        writeIntoParserLogFile(
+            "Line "
+            + $ID.getLine() + ": declaration_list : ID LTHIRD CONST_INT RTHIRD\n\n" + $ID.getText() + "[" + $CONST_INT.getText()+ "]\n"
+        );           
+    }
     ;
 
 statements

@@ -1,3 +1,5 @@
+package SymbolTable;
+
 public class SymbolTable {
     private ScopeTable currentScope;
     private int bucketCount;

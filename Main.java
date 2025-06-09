@@ -1,53 +1,56 @@
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.*;
+
+import java.io.*;
+
 public class Main {
-    public static void main(String[] args) {
-        // Create a symbol table with 7 buckets
-        SymbolTable table = new SymbolTable(7);
+    public static BufferedWriter parserLogFile;
+    public static BufferedWriter errorFile;
+    public static BufferedWriter lexLogFile;
 
-        // Insert symbols into global scope
-        table.insert("x", "int");
-        table.insert("y", "float");
+    public static int syntaxErrorCount = 0;
 
-        // Print current scope (should show x and y)
-        table.printCurrentScope();
+    public static void main(String[] args) throws Exception {
+        if (args.length < 1) {
+            System.err.println("Usage: java Main <input_file>");
+            return;
+        }
 
-        // Lookup existing symbol
-        SymbolInfo found = table.lookup("x");
-        System.out.println(found != null ? "Found: " + found.getName() + ", " + found.getType() : "Not found");
+        File inputFile = new File(args[0]);
+        if (!inputFile.exists()) {
+            System.err.println("Error opening input file: " + args[0]);
+            return;
+        }
 
-        // Lookup non-existing symbol
-        SymbolInfo notFound = table.lookup("z");
-        System.out.println(notFound != null ? "Found: " + notFound.getName() : "Not found");
+        String outputDirectory = "output/";
+        String parserLogFileName = outputDirectory + "parserLog.txt";
+        String errorFileName = outputDirectory + "errorLog.txt";
+        String lexLogFileName = outputDirectory + "lexerLog.txt";
 
-        // Enter a new scope
-        table.enterScope();
+        new File(outputDirectory).mkdirs();
 
-        // Insert new symbol in inner scope
-        table.insert("z", "char");
+        parserLogFile = new BufferedWriter(new FileWriter(parserLogFileName));
+        errorFile = new BufferedWriter(new FileWriter(errorFileName));
+        lexLogFile = new BufferedWriter(new FileWriter(lexLogFileName));
 
-        // Shadow variable 'x' in inner scope
-        table.insert("x", "double");
+        // Create lexer and parser
+        CharStream input = CharStreams.fromFileName(args[0]);
+        C8086Lexer lexer = new C8086Lexer(input);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        C8086Parser parser = new C8086Parser(tokens);
 
-        // Print current scope
-        table.printCurrentScope();
+        // Remove default error listener
+        parser.removeErrorListeners();
 
-        // Lookup 'x' (should find double in inner scope)
-        SymbolInfo shadowedX = table.lookup("x");
-        System.out.println("Shadowed x: " + shadowedX.getName() + ", " + shadowedX.getType());
+        // Begin parsing
+        ParseTree tree = parser.start();
+        parserLogFile.write("Parse tree: " + tree.toStringTree(parser) + "\n");
 
-        // Print all scopes
-        table.printAllScopes();
+        // Close files
+        parserLogFile.close();
+        errorFile.close();
+        lexLogFile.close();
 
-        // Exit inner scope
-        table.exitScope();
-
-        // Print current scope after popping
-        table.printCurrentScope();
-
-        // Try deleting a symbol
-        boolean deleted = table.remove("x");
-        System.out.println(deleted ? "'x' deleted successfully." : "Failed to delete 'x'.");
-
-        // Print current scope again
-        table.printCurrentScope();
+        System.out.println("Parsing completed. Check the output files for details.");
     }
 }

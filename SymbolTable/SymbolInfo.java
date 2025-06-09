@@ -1,3 +1,5 @@
+package SymbolTable;
+
 public class SymbolInfo{
     
         private String name;

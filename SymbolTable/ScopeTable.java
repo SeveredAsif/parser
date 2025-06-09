@@ -1,3 +1,4 @@
+package SymbolTable;
 
 public class ScopeTable {
     private static int scopeIdCounter = 1;
