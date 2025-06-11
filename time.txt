@@ -9,3 +9,11 @@
 10 JUN 2025
 1. 10:01 am - 10:42 am
 2. 7:14 pm - 10:09 pm -without scopetable, done logging (without some details)
+
+11 JUN 2025
+1. 8:16 pm - 10:14 pm - symbol table (without the enterscope correction)
+
+
+
+
+

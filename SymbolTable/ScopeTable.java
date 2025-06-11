@@ -115,22 +115,27 @@ public class ScopeTable {
         return false;
     }
 
-    public void print(int indentLevel) {
+    public String getString(int indentLevel) {
+        StringBuilder sb = new StringBuilder();
         String indent = "\t".repeat(indentLevel);
-        System.out.println(indent + "ScopeTable# " + id);
-
+    
+        sb.append(indent).append("ScopeTable# ").append(id).append("\n");
+    
         for (int i = 0; i < numBuckets; i++) {
             SymbolInfo current = table[i];
             if (current != null) {
-                System.out.print(indent + (i + 1) + " --> ");
+                sb.append(indent).append(i + 1).append(" --> ");
                 while (current != null) {
-                    System.out.print(current.getPrintingLine() + " ");
+                    sb.append(current.getPrintingLine()).append(" ");
                     current = current.getNext();
                 }
-                System.out.println();
+                sb.append("\n");
             }
         }
+    
+        return sb.toString();
     }
+    
 
     
 

@@ -52,19 +52,23 @@ public class SymbolTable {
         return null;
     }
 
-    public void printCurrentScope() {
-        if (currentScope != null) {
-            currentScope.print(1);
-        }
+    public String printCurrentScope() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(currentScope.getString(1));
+        return sb.toString();
     }
-
-    public void printAllScopes() {
+    public String getAllScopesAsString() {
         ScopeTable temp = currentScope;
         int indent = 1;
+        StringBuilder sb = new StringBuilder();
+    
         while (temp != null) {
-            temp.print(indent);
+            sb.append(temp.getString(indent));  // Assumes ScopeTable has a getString(indent) method
             indent++;
             temp = temp.getParent();
         }
+    
+        return sb.toString();
     }
+    
 }

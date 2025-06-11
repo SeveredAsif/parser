@@ -2,11 +2,13 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
 import java.io.*;
+import SymbolTable.SymbolTable;
 
 public class Main {
     public static BufferedWriter parserLogFile;
     public static BufferedWriter errorFile;
     public static BufferedWriter lexLogFile;
+    public static SymbolTable st;
 
     public static int syntaxErrorCount = 0;
 
@@ -38,6 +40,9 @@ public class Main {
         C8086Lexer lexer = new C8086Lexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         C8086Parser parser = new C8086Parser(tokens);
+
+        //Create SymbolTable
+        st = new SymbolTable(7);
 
         // Remove default error listener
         parser.removeErrorListeners();

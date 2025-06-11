@@ -31,6 +31,41 @@ import java.io.IOException;
             System.err.println("Error file write error: " + e.getMessage());
         }
     }
+    
+
+    void insertIntoSymbolTable(String name, String type){
+        try {
+            Main.st.insert(name,type);
+
+        } catch (Exception e) {
+            System.err.println("Parser log error: " + e.getMessage());
+        }
+    }
+    void enterNewScope(){
+        try {
+            Main.st.enterScope();
+        } catch (Exception e) {
+            System.err.println("Parser log error: " + e.getMessage());
+        }
+    }
+        
+        
+    void exitScope(){
+        try {
+            Main.st.exitScope();
+            printSymboltable();
+
+        } catch (Exception e) {
+            System.err.println("Parser log error: " + e.getMessage());
+        }
+    }
+    void printSymboltable(){
+        try {
+            writeIntoParserLogFile(Main.st.getAllScopesAsString());
+        } catch (Exception e) {
+            System.err.println("Parser log error: " + e.getMessage());
+        }
+    }
 }
 
 start
@@ -96,7 +131,8 @@ func_declaration
             "Line "
             + $sm.getLine() + ": func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON\n\n" +$t.text + " "+ $ID.getText() + "(" + $p.text +")"+ ";\n"
         ); 
-        $name_line=$t.text + " "+ $ID.getText() + "(" + $p.text +");";           
+        $name_line=$t.text + " "+ $ID.getText() + "(" + $p.text +");";    
+        insertIntoSymbolTable($ID.getText(),"ID");       
       }
     | t=type_specifier ID LPAREN RPAREN sm=SEMICOLON
       {
@@ -105,6 +141,7 @@ func_declaration
             + $sm.getLine() + ": func_declaration : type_specifier ID LPAREN RPAREN SEMICOLON\n\n" +$t.text + " "+ $ID.getText() + "()"+ ";\n"
         );   
         $name_line = $t.text + " "+ $ID.getText() + "();";         
+        insertIntoSymbolTable($ID.getText(),"ID");
       }
     ;
 
@@ -117,6 +154,8 @@ func_definition
             + $c.stop.getLine() + ": func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement\n\n" +$t.text + " "+ $ID.getText() + "("+$p.text+ ")"+ $c.name_line + "\n"
         );          
         $name_line = $t.text + " "+ $ID.getText() + "("+$p.text+ ")"+ $c.name_line;
+        insertIntoSymbolTable($ID.getText(),"ID");
+        enterNewScope();
     }
     | t=type_specifier ID LPAREN RPAREN c=compound_statement
     {
@@ -125,6 +164,8 @@ func_definition
             + $c.stop.getLine() + ": func_definition : type_specifier ID LPAREN RPAREN compound_statement\n\n" +$t.text + " "+ $ID.getText() + "()"+ $c.name_line + ";\n"
         );          
         $name_line = $t.text + " "+ $ID.getText() + "()"+ $c.name_line;
+        insertIntoSymbolTable($ID.getText(),"ID");
+        enterNewScope();
     }
     ;
 
@@ -137,6 +178,7 @@ parameter_list
             + $ID.getLine() + ": parameter_list : parameter_list COMMA type_specifier ID\n\n" + $p.name_line + ","+ $t.text + " " + $ID.getText() + ";\n"
         );          
         $name_line = $p.name_line + ","+ $t.text + " " + $ID.getText();
+        insertIntoSymbolTable($ID.getText(),"ID");
     }
     | p=parameter_list COMMA t=type_specifier
     {
@@ -153,6 +195,7 @@ parameter_list
             + $t.stop.getLine() + ": parameter_list : type_specifier ID\n\n" + $t.text + " " + $ID.getText() + ";\n"
         );          
         $name_line = $t.text + " " + $ID.getText();
+        insertIntoSymbolTable($ID.getText(),"ID");
     }
     | t=type_specifier
     {
@@ -168,6 +211,7 @@ compound_statement
     returns [String name_line]
     : LCURL stmts=statements RCURL
     {
+        exitScope();
         writeIntoParserLogFile(
             "Line " + $RCURL.getLine() + ": compound_statement : LCURL statements RCURL\n\n{\n" + $stmts.name_line + "\n}\n"
         );
@@ -245,7 +289,8 @@ declaration_list
         writeIntoParserLogFile(
             "Line "
             + $ID.getLine() + ": declaration_list : declaration_list COMMA ID\n\n" + $dec1.text + ","+$ID.getText() + "\n"
-        );           
+        );   
+    insertIntoSymbolTable($ID.getText(),"ID");        
     }
     | dec2=declaration_list COMMA ID LTHIRD CONST_INT RTHIRD
     {
@@ -253,20 +298,23 @@ declaration_list
             "Line "
             + $ID.getLine() + ": declaration_list : declaration_list COMMA ID LTHIRD CONST_INT RTHIRD\n\n" + $dec2.text+",["+$CONST_INT.getText() + "]\n"
         );  
+        insertIntoSymbolTable($ID.getText(),"ID");
     }
     | ID
     {
         writeIntoParserLogFile(
             "Line "
             + $ID.getLine() + ": declaration_list : ID\n\n" + $ID.getText() + "\n"
-        );           
+        );
+        insertIntoSymbolTable($ID.getText(),"ID");           
     }
     | ID LTHIRD CONST_INT RTHIRD
     {
         writeIntoParserLogFile(
             "Line "
             + $ID.getLine() + ": declaration_list : ID LTHIRD CONST_INT RTHIRD\n\n" + $ID.getText() + "[" + $CONST_INT.getText()+ "]\n"
-        );           
+        );  
+        insertIntoSymbolTable($ID.getText(),"ID");         
     }
     ;
 
@@ -395,7 +443,7 @@ variable
     {
         writeIntoParserLogFile(
         "Line "
-        + $ID.getLine() + ": declaration_list : ID LTHIRD expression RTHIRD\n\n" + $ID.getText() + "[" + $e.name_line+ "]\n"
+        + $ID.getLine() + ": variable : ID LTHIRD expression RTHIRD\n\n" + $ID.getText() + "[" + $e.name_line+ "]\n"
     ); 
     $name_line=$ID.getText() + "[" + $e.name_line+ "]";        
     }
