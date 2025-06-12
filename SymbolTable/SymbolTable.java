@@ -32,7 +32,7 @@ public class SymbolTable {
     }
 
     public boolean insert(String name, String type) {
-        return currentScope.insert(name, type, "<" + name + "," + type + ">");
+        return currentScope.insert(name, type, "< " + name + " : " + type + " >");
     }
 
     public boolean remove(String name) {
@@ -63,7 +63,7 @@ public class SymbolTable {
         StringBuilder sb = new StringBuilder();
     
         while (temp != null) {
-            sb.append(temp.getString(indent));  // Assumes ScopeTable has a getString(indent) method
+            sb.append(temp.getString(indent));  
             indent++;
             temp = temp.getParent();
         }

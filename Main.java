@@ -2,6 +2,10 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+
+
 import SymbolTable.SymbolTable;
 
 public class Main {
@@ -11,6 +15,16 @@ public class Main {
     public static SymbolTable st;
 
     public static int syntaxErrorCount = 0;
+    public static List<String> pendingInsertions;
+    public static void addToPending(String name){
+        pendingInsertions.add(name);
+    }
+    public static void addToSymbolTable(){
+        for(String item: pendingInsertions){
+            st.insert(item,"ID");
+        }
+        pendingInsertions.clear();
+    }
 
     public static void main(String[] args) throws Exception {
         if (args.length < 1) {
@@ -28,6 +42,8 @@ public class Main {
         String parserLogFileName = outputDirectory + "parserLog.txt";
         String errorFileName = outputDirectory + "errorLog.txt";
         String lexLogFileName = outputDirectory + "lexerLog.txt";
+        pendingInsertions = new ArrayList<>();
+
 
         new File(outputDirectory).mkdirs();
 
@@ -49,7 +65,7 @@ public class Main {
 
         // Begin parsing
         ParseTree tree = parser.start();
-        parserLogFile.write("Parse tree: " + tree.toStringTree(parser) + "\n");
+        // parserLogFile.write("Parse tree: " + tree.toStringTree(parser) + "\n");
 
         // Close files
         parserLogFile.close();

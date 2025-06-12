@@ -22,11 +22,9 @@ Line 1: unit : var_declaration
 
 int x,y,z;
 
-
 Line 1: program : unit
 
 int x,y,z;
-
 
 Line 1: type_specifier : FLOAT
 
@@ -44,12 +42,10 @@ Line 1: unit : var_declaration
 
 float a;
 
-
 Line 1: program : program unit
 
 int x,y,z;
 float a;
-
 
 Line 3: type_specifier : VOID
 
@@ -59,18 +55,15 @@ Line 3: func_declaration : type_specifier ID LPAREN RPAREN SEMICOLON
 
 void foo();
 
-
 Line 3: unit : func_declaration
 
 void foo();
-
 
 Line 3: program : program unit
 
 int x,y,z;
 float a;
 void foo();
-
 
 Line 5: type_specifier : INT
 
@@ -140,7 +133,7 @@ Line 6: logic_expression : rel_expression
 
 a+b
 
-Line 6: expression : logic expression
+Line 6: expression : logic_expression
 
 a+b
 
@@ -148,11 +141,9 @@ Line 6: statement : RETURN expression SEMICOLON
 
 return a+b;
 
-
 Line 6: statements : statement
 
 return a+b;
-
 
 Line 7: compound_statement : LCURL statements RCURL
 
@@ -160,23 +151,16 @@ Line 7: compound_statement : LCURL statements RCURL
 return a+b;
 }
 
-
-
-
-ScopeTable # 1.2
- 7 --> < a , ID > 
- 8 --> < b , ID > 
-
-
-
+ScopeTable # 1.1
+0 --> < b : ID >
+6 --> < a : ID >
 ScopeTable # 1
- 0 --> < x , ID > 
- 1 --> < y , ID > 
- 2 --> < z , ID > 
- 7 --> < a , ID > 
- 24 --> < foo , ID >
- 29 --> < var , ID >
-
+0 --> < var : ID >
+1 --> < x : ID >
+2 --> < y : ID >
+3 --> < z : ID >
+4 --> < foo : ID >
+6 --> < a : ID >
 
 Line 7: func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement
 
@@ -184,14 +168,11 @@ int var(int a,int b){
 return a+b;
 }
 
-
 Line 7: unit : func_definition
 
 int var(int a,int b){
 return a+b;
 }
-
-
 
 Line 7: program : program unit
 
@@ -201,8 +182,6 @@ void foo();
 int var(int a,int b){
 return a+b;
 }
-
-
 
 Line 9: type_specifier : VOID
 
@@ -248,11 +227,9 @@ Line 10: statement : expression_statement
 
 x=2;
 
-
 Line 10: statements : statement
 
 x=2;
-
 
 Line 11: variable : ID
 
@@ -314,12 +291,10 @@ Line 11: statement : expression_statement
 
 y=x-5;
 
-
 Line 11: statements : statements statement
 
 x=2;
 y=x-5;
-
 
 Line 12: compound_statement : LCURL statements RCURL
 
@@ -328,21 +303,14 @@ x=2;
 y=x-5;
 }
 
-
-
-
-ScopeTable # 1.3
-
-
-
+ScopeTable # 1.2
 ScopeTable # 1
- 0 --> < x , ID > 
- 1 --> < y , ID > 
- 2 --> < z , ID > 
- 7 --> < a , ID > 
- 24 --> < foo , ID >
- 29 --> < var , ID >
-
+0 --> < var : ID >
+1 --> < x : ID >
+2 --> < y : ID >
+3 --> < z : ID >
+4 --> < foo : ID >
+6 --> < a : ID >
 
 Line 12: func_definition : type_specifier ID LPAREN RPAREN compound_statement
 
@@ -351,15 +319,12 @@ x=2;
 y=x-5;
 }
 
-
 Line 12: unit : func_definition
 
 void foo(){
 x=2;
 y=x-5;
 }
-
-
 
 Line 12: program : program unit
 
@@ -369,13 +334,10 @@ void foo();
 int var(int a,int b){
 return a+b;
 }
-
 void foo(){
 x=2;
 y=x-5;
 }
-
-
 
 Line 14: type_specifier : INT
 
@@ -409,11 +371,9 @@ Line 15: statement : var_declaration
 
 int a[2],c,i,j;
 
-
 Line 15: statements : statement
 
 int a[2],c,i,j;
-
 
 Line 15: type_specifier : FLOAT
 
@@ -431,12 +391,10 @@ Line 15: statement : var_declaration
 
 float d;
 
-
 Line 15: statements : statements statement
 
 int a[2],c,i,j;
 float d;
-
 
 Line 16: factor : CONST_INT
 
@@ -462,7 +420,7 @@ Line 16: logic_expression : rel_expression
 
 0
 
-Line 16: expression : logic expression
+Line 16: expression : logic_expression
 
 0
 
@@ -494,7 +452,7 @@ Line 16: logic_expression : rel_expression
 
 a[0]
 
-Line 16: expression : logic expression
+Line 16: expression : logic_expression
 
 a[0]
 
@@ -506,13 +464,11 @@ Line 16: statement : expression_statement
 
 a[0];
 
-
 Line 16: statements : statements statement
 
 int a[2],c,i,j;
 float d;
 a[0];
-
 
 Line 17: factor : CONST_INT
 
@@ -538,7 +494,7 @@ Line 17: logic_expression : rel_expression
 
 1
 
-Line 17: expression : logic expression
+Line 17: expression : logic_expression
 
 1
 
@@ -582,14 +538,12 @@ Line 17: statement : expression_statement
 
 a[1]=5;
 
-
 Line 17: statements : statements statement
 
 int a[2],c,i,j;
 float d;
 a[0];
 a[1]=5;
-
 
 Line 18: variable : ID
 
@@ -619,7 +573,7 @@ Line 18: logic_expression : rel_expression
 
 0
 
-Line 18: expression : logic expression
+Line 18: expression : logic_expression
 
 0
 
@@ -667,7 +621,7 @@ Line 18: logic_expression : rel_expression
 
 1
 
-Line 18: expression : logic expression
+Line 18: expression : logic_expression
 
 1
 
@@ -711,7 +665,6 @@ Line 18: statement : expression_statement
 
 i=a[0]+a[1];
 
-
 Line 18: statements : statements statement
 
 int a[2],c,i,j;
@@ -719,7 +672,6 @@ float d;
 a[0];
 a[1]=5;
 i=a[0]+a[1];
-
 
 Line 19: variable : ID
 
@@ -825,7 +777,7 @@ Line 19: logic_expression : rel_expression LOGICOP rel_expression
 
 5%3<4&&8
 
-Line 19: expression : logic expression
+Line 19: expression : logic_expression
 
 5%3<4&&8
 
@@ -885,7 +837,6 @@ Line 19: statement : expression_statement
 
 j=2*3+(5%3<4&&8)||2;
 
-
 Line 19: statements : statements statement
 
 int a[2],c,i,j;
@@ -894,7 +845,6 @@ a[0];
 a[1]=5;
 i=a[0]+a[1];
 j=2*3+(5%3<4&&8)||2;
-
 
 Line 20: variable : ID
 
@@ -990,15 +940,15 @@ var(1,2*3)
 
 Line 20: factor : CONST_FLOAT
 
-3.50
+3.5
 
 Line 20: unary_expression : factor
 
-3.50
+3.5
 
 Line 20: term : unary_expression
 
-3.50
+3.5
 
 Line 20: factor : CONST_INT
 
@@ -1010,32 +960,31 @@ Line 20: unary_expression : factor
 
 Line 20: term : term MULOP unary_expression
 
-3.50*2
+3.5*2
 
 Line 20: simple_expression : simple_expression ADDOP term
 
-var(1,2*3)+3.50*2
+var(1,2*3)+3.5*2
 
 Line 20: rel_expression : simple_expression
 
-var(1,2*3)+3.50*2
+var(1,2*3)+3.5*2
 
 Line 20: logic_expression : rel_expression
 
-var(1,2*3)+3.50*2
+var(1,2*3)+3.5*2
 
 Line 20: expression : variable ASSIGNOP logic_expression
 
-d=var(1,2*3)+3.50*2
+d=var(1,2*3)+3.5*2
 
 Line 20: expression_statement : expression SEMICOLON
 
-d=var(1,2*3)+3.50*2;
+d=var(1,2*3)+3.5*2;
 
 Line 20: statement : expression_statement
 
-d=var(1,2*3)+3.50*2;
-
+d=var(1,2*3)+3.5*2;
 
 Line 20: statements : statements statement
 
@@ -1045,8 +994,7 @@ a[0];
 a[1]=5;
 i=a[0]+a[1];
 j=2*3+(5%3<4&&8)||2;
-d=var(1,2*3)+3.50*2;
-
+d=var(1,2*3)+3.5*2;
 
 Line 21: factor : CONST_INT
 
@@ -1072,14 +1020,13 @@ Line 21: logic_expression : rel_expression
 
 0
 
-Line 21: expression : logic expression
+Line 21: expression : logic_expression
 
 0
 
 Line 21: statement : RETURN expression SEMICOLON
 
 return 0;
-
 
 Line 21: statements : statements statement
 
@@ -1089,9 +1036,8 @@ a[0];
 a[1]=5;
 i=a[0]+a[1];
 j=2*3+(5%3<4&&8)||2;
-d=var(1,2*3)+3.50*2;
+d=var(1,2*3)+3.5*2;
 return 0;
-
 
 Line 22: compound_statement : LCURL statements RCURL
 
@@ -1102,30 +1048,22 @@ a[0];
 a[1]=5;
 i=a[0]+a[1];
 j=2*3+(5%3<4&&8)||2;
-d=var(1,2*3)+3.50*2;
+d=var(1,2*3)+3.5*2;
 return 0;
 }
 
-
-
-
-ScopeTable # 1.4
- 7 --> < a , ID > 
- 9 --> < c , ID > 
- 10 --> < d , ID > 
- 15 --> < i , ID > 
- 16 --> < j , ID > 
-
-
-
+ScopeTable # 1.3
+0 --> < i : ID >
+1 --> < c : ID >< j : ID >
+2 --> < d : ID >
+6 --> < a : ID >
 ScopeTable # 1
- 0 --> < x , ID > 
- 1 --> < y , ID > < main , ID >
- 2 --> < z , ID > 
- 7 --> < a , ID > 
- 24 --> < foo , ID >
- 29 --> < var , ID >
-
+0 --> < var : ID >
+1 --> < x : ID >
+2 --> < y : ID >
+3 --> < z : ID >
+4 --> < foo : ID >
+6 --> < a : ID >< main : ID >
 
 Line 22: func_definition : type_specifier ID LPAREN RPAREN compound_statement
 
@@ -1136,10 +1074,9 @@ a[0];
 a[1]=5;
 i=a[0]+a[1];
 j=2*3+(5%3<4&&8)||2;
-d=var(1,2*3)+3.50*2;
+d=var(1,2*3)+3.5*2;
 return 0;
 }
-
 
 Line 22: unit : func_definition
 
@@ -1150,11 +1087,9 @@ a[0];
 a[1]=5;
 i=a[0]+a[1];
 j=2*3+(5%3<4&&8)||2;
-d=var(1,2*3)+3.50*2;
+d=var(1,2*3)+3.5*2;
 return 0;
 }
-
-
 
 Line 22: program : program unit
 
@@ -1164,12 +1099,10 @@ void foo();
 int var(int a,int b){
 return a+b;
 }
-
 void foo(){
 x=2;
 y=x-5;
 }
-
 int main(){
 int a[2],c,i,j;
 float d;
@@ -1177,25 +1110,19 @@ a[0];
 a[1]=5;
 i=a[0]+a[1];
 j=2*3+(5%3<4&&8)||2;
-d=var(1,2*3)+3.50*2;
+d=var(1,2*3)+3.5*2;
 return 0;
 }
 
-
-
 Line 22: start : program
 
-
-
 ScopeTable # 1
- 0 --> < x , ID > 
- 1 --> < y , ID > < main , ID >
- 2 --> < z , ID > 
- 7 --> < a , ID > 
- 24 --> < foo , ID >
- 29 --> < var , ID >
+0 --> < var : ID >
+1 --> < x : ID >
+2 --> < y : ID >
+3 --> < z : ID >
+4 --> < foo : ID >
+6 --> < a : ID >< main : ID >
 
-
-Total lines: 22
-Total errors: 0
-
+Total number of lines: 22
+Total number of errors: 0

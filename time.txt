@@ -13,6 +13,10 @@
 11 JUN 2025
 1. 8:16 pm - 10:14 pm - symbol table (without the enterscope correction)
 
+12 JUN 2025
+1. 10:42 am - 1:19 pm - symbol table updated insert 
+2. 3:59 pm - 5:22 - all done input 1, except symbol table index fix 
+
 
 
 

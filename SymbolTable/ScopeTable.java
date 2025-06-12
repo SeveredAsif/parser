@@ -117,16 +117,22 @@ public class ScopeTable {
 
     public String getString(int indentLevel) {
         StringBuilder sb = new StringBuilder();
-        String indent = "\t".repeat(indentLevel);
-    
-        sb.append(indent).append("ScopeTable# ").append(id).append("\n");
+        // String indent = "\t".repeat(indentLevel);
+        StringBuilder count =new StringBuilder();
+        count.append("1");
+
+        if(id>1){
+            count.append(".");
+            count.append(String.valueOf(id-1));
+        }    
+        sb.append("ScopeTable # ").append(count.toString()).append("\n");
     
         for (int i = 0; i < numBuckets; i++) {
             SymbolInfo current = table[i];
             if (current != null) {
-                sb.append(indent).append(i + 1).append(" --> ");
+                sb.append(i).append(" --> ");
                 while (current != null) {
-                    sb.append(current.getPrintingLine()).append(" ");
+                    sb.append(current.getPrintingLine()).append("");
                     current = current.getNext();
                 }
                 sb.append("\n");
@@ -142,7 +148,7 @@ public class ScopeTable {
     public static int sdbmHash(String str, int numBuckets) {
         long hash = 0;
         for (char c : str.toCharArray()) {
-            hash = (c + (hash << 6) + (hash << 16) - hash) % numBuckets;
+            hash = (c + (hash << 6) + (hash << 16) - hash);
         }
         return (int) (hash % numBuckets);
     }
