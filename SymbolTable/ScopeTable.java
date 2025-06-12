@@ -149,9 +149,11 @@ public class ScopeTable {
         long hash = 0;
         for (char c : str.toCharArray()) {
             hash = (c + (hash << 6) + (hash << 16) - hash);
+            hash &= 0xFFFFFFFFL; // simulate 32-bit unsigned overflow
         }
-        return (int) (hash % numBuckets);
+        return (int)(hash % numBuckets);
     }
+    
 
     public static int djb2Hash(String str, int numBuckets) {
         long hash = 5381;

@@ -147,9 +147,9 @@ func_declaration
       {
         writeIntoParserLogFile(
             "Line "
-            + $sm.getLine() + ": func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON\n\n" +$t.text + " "+ $ID.getText() + "(" + $p.text +")"+ ";\n"
+            + $sm.getLine() + ": func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON\n\n" +$t.text + " "+ $ID.getText() + "(" + $p.name_line +")"+ ";\n"
         ); 
-        $name_line=$t.text + " "+ $ID.getText() + "(" + $p.text +");";    
+        $name_line=$t.text + " "+ $ID.getText() + "(" + $p.name_line +");";    
         addToPendingList($ID.getText()); 
         Main.addToSymbolTable();      
       }
@@ -334,7 +334,7 @@ declaration_list
     {
         writeIntoParserLogFile(
             "Line "
-            + $ID.getLine() + ": declaration_list : declaration_list COMMA ID LTHIRD CONST_INT RTHIRD\n\n" + $dec2.text+",["+$CONST_INT.getText() + "]\n"
+            + $ID.getLine() + ": declaration_list : declaration_list COMMA ID LTHIRD CONST_INT RTHIRD\n\n" + $dec2.text+","+$ID.getText()+"["+$CONST_INT.getText() + "]\n"
         );  
         addToPendingList($ID.getText());  
     }
