@@ -43,9 +43,9 @@ import java.io.IOException;
     }
     void enterNewScope(){
         try {
-
             Main.st.enterScope();
             Main.addToSymbolTable();
+            
 
         } catch (Exception e) {
             System.err.println("Parser log error: " + e.getMessage());
@@ -55,6 +55,7 @@ import java.io.IOException;
         
     void exitScope(){
         try {
+            Main.addToSymbolTable();
             printSymboltable();
             Main.st.exitScope();
 
@@ -150,8 +151,8 @@ func_declaration
             + $sm.getLine() + ": func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON\n\n" +$t.text + " "+ $ID.getText() + "(" + $p.name_line +")"+ ";\n"
         ); 
         $name_line=$t.text + " "+ $ID.getText() + "(" + $p.name_line +");";    
-        addToPendingList($ID.getText()); 
-        Main.addToSymbolTable();      
+   
+        Main.st.insert($ID.getText(),"ID");
       }
     | t=type_specifier ID LPAREN RPAREN sm=SEMICOLON
       {
@@ -160,8 +161,7 @@ func_declaration
             + $sm.getLine() + ": func_declaration : type_specifier ID LPAREN RPAREN SEMICOLON\n\n" +$t.text + " "+ $ID.getText() + "()"+ ";\n"
         );   
         $name_line = $t.text + " "+ $ID.getText() + "();";         
-        addToPendingList($ID.getText());  
-        Main.addToSymbolTable();
+        Main.st.insert($ID.getText(),"ID");
       }
     ;
 
@@ -170,8 +170,7 @@ func_definition
     : t=type_specifier 
     ID
     {
-        addToPendingList($ID.getText());  
-        Main.addToSymbolTable();       
+        Main.st.insert($ID.getText(),"ID");    
     } 
     LPAREN p=parameter_list RPAREN c=compound_statement
     {
@@ -180,15 +179,13 @@ func_definition
             + $c.stop.getLine() + ": func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement\n\n" +$t.text + " "+ $ID.getText() + "("+$p.name_line+ ")"+ $c.name_line + "\n"
         );          
         $name_line = $t.text + " "+ $ID.getText() + "("+$p.name_line+ ")"+ $c.name_line;
-        addToPendingList($ID.getText());  
-        Main.addToSymbolTable();
+        Main.st.insert($ID.getText(),"ID");
 
     }
     | t=type_specifier 
     ID
     {
-        addToPendingList($ID.getText());  
-        Main.addToSymbolTable();
+        Main.st.insert($ID.getText(),"ID");
     } 
     LPAREN RPAREN c=compound_statement
     {
@@ -209,7 +206,7 @@ parameter_list
             + $ID.getLine() + ": parameter_list : parameter_list COMMA type_specifier ID\n\n" + $p.name_line + ","+ $t.text + " " + $ID.getText() + "\n"
         );          
         $name_line = $p.name_line + ","+ $t.text + " " + $ID.getText();
-        addToPendingList($ID.getText());  
+addToPendingList($ID.getText());  
     }
     | p=parameter_list COMMA t=type_specifier
     {
@@ -226,7 +223,7 @@ parameter_list
             + $t.stop.getLine() + ": parameter_list : type_specifier ID\n\n" + $t.text + " " + $ID.getText() + "\n"
         );          
         $name_line = $t.text + " " + $ID.getText();
-        addToPendingList($ID.getText());  
+         addToPendingList($ID.getText());  
     }
     | t=type_specifier
     {
@@ -361,14 +358,14 @@ statements
     : s=statement
     {
         writeIntoParserLogFile(
-            "Line " + $s.start.getLine() + ": statements : statement\n\n" + $s.name_line + "\n"
+            "Line " + $s.stop.getLine() + ": statements : statement\n\n" + $s.name_line + "\n"
         );
         $name_line = $s.name_line;
     }
     | s1=statements s2=statement
     {
         writeIntoParserLogFile(
-            "Line " + $s2.start.getLine() + ": statements : statements statement\n\n" + $s1.name_line + "\n" + $s2.name_line + "\n"
+            "Line " + $s2.stop.getLine() + ": statements : statements statement\n\n" + $s1.name_line + "\n" + $s2.name_line + "\n"
         );
         $name_line = $s1.name_line + "\n" + $s2.name_line;
     }
@@ -401,41 +398,41 @@ statement returns [String name_line]
     {
         writeIntoParserLogFile(
             "Line " + $s.stop.getLine() + ": statement : FOR LPAREN expression_statement expression_statement expression RPAREN statement\n\n"
-            + "for(" + $e1.name_line + " " + $e2.name_line + " " + $e3.name_line + ") " + $s.name_line + "\n"
+            + "for(" + $e1.name_line + "" + $e2.name_line + "" + $e3.name_line + ")" + $s.name_line + "\n"
         );
-        $name_line = "for(" + $e1.name_line + " " + $e2.name_line + " " + $e3.name_line + ") " + $s.name_line;
+        $name_line = "for(" + $e1.name_line + "" + $e2.name_line + "" + $e3.name_line + ")" + $s.name_line;
     }
     | IF LPAREN e=expression RPAREN s=statement
     {
         writeIntoParserLogFile(
             "Line " + $s.stop.getLine() + ": statement : IF LPAREN expression RPAREN statement\n\n"
-            + "if(" + $e.name_line + ") " + $s.name_line + "\n"
+            + "if(" + $e.name_line + ")" + $s.name_line + "\n"
         );
-        $name_line = "if(" + $e.name_line + ") " + $s.name_line;
+        $name_line = "if(" + $e.name_line + ")" + $s.name_line;
     }
     | IF LPAREN e=expression RPAREN s1=statement ELSE s2=statement
     {
         writeIntoParserLogFile(
             "Line " + $s2.stop.getLine() + ": statement : IF LPAREN expression RPAREN statement ELSE statement\n\n"
-            + "if(" + $e.name_line + ") " + $s1.name_line + " else " + $s2.name_line + "\n"
+            + "if(" + $e.name_line + ")" + $s1.name_line + "else " + $s2.name_line + "\n"
         );
-        $name_line = "if(" + $e.name_line + ") " + $s1.name_line + " else " + $s2.name_line;
+        $name_line = "if(" + $e.name_line + ")" + $s1.name_line + "else " + $s2.name_line;
     }
     | WHILE LPAREN e=expression RPAREN s=statement
     {
         writeIntoParserLogFile(
             "Line " + $s.stop.getLine() + ": statement : WHILE LPAREN expression RPAREN statement\n\n"
-            + "while(" + $e.name_line + ") " + $s.name_line + "\n"
+            + "while(" + $e.name_line + ")" + $s.name_line + "\n"
         );
-        $name_line = "while(" + $e.name_line + ") " + $s.name_line;
+        $name_line = "while(" + $e.name_line + ")" + $s.name_line;
     }
     | PRINTLN LPAREN ID RPAREN SEMICOLON
     {
         writeIntoParserLogFile(
             "Line " + $SEMICOLON.getLine() + ": statement : PRINTLN LPAREN ID RPAREN SEMICOLON\n\n"
-            + "println(" + $ID.getText() + ");\n"
+            + "printf(" + $ID.getText() + ");\n"
         );
-        $name_line = "println(" + $ID.getText() + ");";
+        $name_line = "printf(" + $ID.getText() + ");";
     }
     | RETURN e=expression SEMICOLON
     {
@@ -476,6 +473,7 @@ variable
         + $ID.getLine() + ": variable : ID\n\n" + $ID.getText() + "\n"
     );    
     $name_line=$ID.getText();     
+    //addToPendingList($ID.getText());
     }
     | ID LTHIRD e=expression RTHIRD
     {
@@ -483,7 +481,8 @@ variable
         "Line "
         + $ID.getLine() + ": variable : ID LTHIRD expression RTHIRD\n\n" + $ID.getText() + "[" + $e.name_line+ "]\n"
     ); 
-    $name_line=$ID.getText() + "[" + $e.name_line+ "]";        
+    $name_line=$ID.getText() + "[" + $e.name_line+ "]";  
+   // addToPendingList($ID.getText());      
     }
     ;
 

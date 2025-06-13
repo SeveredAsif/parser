@@ -16,8 +16,11 @@
 12 JUN 2025
 1. 10:42 am - 1:19 pm - symbol table updated insert 
 2. 3:59 pm - 5:22 - all done input 1, except symbol table index fix 
-3. 11:18 pm - 
+3. 11:18 pm - 1:04 - input 1 done. input 3 all except symbol table number and println problem 
 
+
+13 JUN 2025
+1. 7:40 pm - 8:13 pm - scopetable number + println issue fix --input 3 done 
 
 
 

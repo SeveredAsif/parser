@@ -6,7 +6,7 @@ public class SymbolTable {
 
     public SymbolTable(int bucketCount, ScopeTable.HashFunction hashFunc) {
         this.bucketCount = bucketCount;
-        this.currentScope = new ScopeTable(bucketCount, null, hashFunc);
+        this.currentScope = new ScopeTable(bucketCount, hashFunc);
         System.out.println("\tScopeTable# " + currentScope.getId() + " created");
     }
 
@@ -20,6 +20,7 @@ public class SymbolTable {
 
     public void enterScope() {
         ScopeTable newScope = new ScopeTable(bucketCount, currentScope, ScopeTable::sdbmHash);
+        currentScope.numberOfChildren++;
         currentScope = newScope;
         System.out.println("\tScopeTable# " + currentScope.getId() + " created");
     }

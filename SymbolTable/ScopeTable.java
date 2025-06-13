@@ -1,13 +1,14 @@
 package SymbolTable;
 
 public class ScopeTable {
-    private static int scopeIdCounter = 1;
+    //private static int scopeIdCounter = 1;
     private int id;
     private SymbolInfo[] table;
     private int numBuckets;
     private ScopeTable parentScope;
     private int collisionCount;
     private HashFunction hashFunc;
+    public int numberOfChildren;
 
     public interface HashFunction {
         int hash(String str, int numBuckets);
@@ -15,17 +16,34 @@ public class ScopeTable {
 
     // Constructor
     public ScopeTable(int size, ScopeTable parent, HashFunction hashFunc) {
-        this.id = scopeIdCounter++;
+        this.id = parent.numberOfChildren+1;
         this.numBuckets = size;
         this.table = new SymbolInfo[size];
         this.parentScope = parent;
         this.collisionCount = 0;
+        this.numberOfChildren = 0;
+        this.hashFunc = hashFunc != null ? hashFunc : ScopeTable::sdbmHash;
+    }
+
+    public ScopeTable(int size, HashFunction hashFunc) {
+        this.id = 1;
+        this.numBuckets = size;
+        this.table = new SymbolInfo[size];
+        this.parentScope = null;
+        this.collisionCount = 0;
+        this.numberOfChildren = 0;
         this.hashFunc = hashFunc != null ? hashFunc : ScopeTable::sdbmHash;
     }
 
     // Default constructor with SDBMHash
     public ScopeTable(int size) {
-        this(size, null, ScopeTable::sdbmHash);
+        this.id = 1;
+        this.numBuckets = size;
+        this.table = new SymbolInfo[size];
+        this.parentScope = null;
+        this.collisionCount = 0;
+        this.numberOfChildren = 0;
+        this.hashFunc = hashFunc != null ? hashFunc : ScopeTable::sdbmHash;
     }
 
     public ScopeTable getParent() {
@@ -114,18 +132,22 @@ public class ScopeTable {
 
         return false;
     }
+    public String getFullId() {
+        if (getParent() == null) return String.valueOf(id);  // Root scope
+        return getParent().getFullId() + "." + id;
+    }
 
     public String getString(int indentLevel) {
         StringBuilder sb = new StringBuilder();
         // String indent = "\t".repeat(indentLevel);
-        StringBuilder count =new StringBuilder();
-        count.append("1");
+        //StringBuilder count =new StringBuilder();
+        // count.append("1");
 
-        if(id>1){
-            count.append(".");
-            count.append(String.valueOf(id-1));
-        }    
-        sb.append("ScopeTable # ").append(count.toString()).append("\n");
+        // if(id>1){
+        //     count.append(".");
+        //     count.append(String.valueOf(id-1));
+        // }    
+        sb.append("ScopeTable # ").append(getFullId()).append("\n");
     
         for (int i = 0; i < numBuckets; i++) {
             SymbolInfo current = table[i];
