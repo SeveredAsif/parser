@@ -36,6 +36,9 @@ public class SymbolTable {
         return currentScope.insert(name, type, "< " + name + " : " + type + " >");
     }
 
+    public boolean insert(SymbolInfo s) {
+        return currentScope.insert(s);
+    }    
     public boolean remove(String name) {
         return currentScope.delete(name);
     }

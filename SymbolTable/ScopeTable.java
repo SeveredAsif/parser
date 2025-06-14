@@ -90,6 +90,39 @@ public class ScopeTable {
         }
     }
 
+    public boolean insert(SymbolInfo newSymbol) {
+        int chainPos = 1;
+        //SymbolInfo newSymbol = new SymbolInfo(name, type, printingLine);
+        int bucket = hashFunc.hash(newSymbol.getName(), numBuckets);
+
+        SymbolInfo head = table[bucket];
+        if (head == null) {
+            table[bucket] = newSymbol;
+            System.out.printf("\tInserted in ScopeTable# %d at position %d, %d\n", id, bucket + 1, chainPos);
+            return true;
+        } else {
+            collisionCount++;
+            SymbolInfo temp = head;
+            if (temp.getName().equals(newSymbol.getName())) {
+                System.out.printf("\t'%s' already exists in the current ScopeTable\n", newSymbol.getName());
+                return false;
+            }
+            while (temp.getNext() != null) {
+                temp = temp.getNext();
+                chainPos++;
+                if (temp.getName().equals(newSymbol.getName())) {
+                    System.out.printf("\t'%s' already exists in the current ScopeTable\n", newSymbol.getName());
+                    return false;
+                }
+            }
+            temp.setNext(newSymbol);
+            chainPos++;
+            System.out.printf("\tInserted in ScopeTable# %d at position %d, %d\n", id, bucket + 1, chainPos);
+            return true;
+        }
+    }
+
+
     public SymbolInfo lookup(String name) {
         int bucket = hashFunc.hash(name, numBuckets);
         SymbolInfo temp = table[bucket];

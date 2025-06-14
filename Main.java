@@ -5,7 +5,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
+import SymbolTable.SymbolInfo;
 import SymbolTable.SymbolTable;
 
 public class Main {
@@ -15,13 +15,45 @@ public class Main {
     public static SymbolTable st;
 
     public static int syntaxErrorCount = 0;
-    public static List<String> pendingInsertions;
-    public static void addToPending(String name){
-        pendingInsertions.add(name);
+    public static List<SymbolInfo> pendingInsertions;
+    public static void addToPending(String name,String IDType){
+        String print = "< " + name + " : " + "ID" + " >";
+        SymbolInfo sym = new SymbolInfo(name, "ID",print,IDType);
+        //sym.setPrintingLine();
+        //sym.IDtype = IDType;
+        //sym.setIDType(IDType);
+        pendingInsertions.add(sym);
+        System.out.println("ID name: "+sym.getName()+" ID Type: "+sym.getIDType());
     }
+    public static void addToPending(String name){
+        SymbolInfo sym = new SymbolInfo(name, "ID");
+        sym.setPrintingLine("< " + name + " : " + "ID" + " >");
+        pendingInsertions.add(sym);
+    }
+
+    public static boolean lookup(String name){
+        SymbolInfo sym = st.lookup(name);
+        //System.out.println("Looking for the name: "+name);
+        if(sym==null) return false;
+        return true;
+    }
+
     public static void addToSymbolTable(){
-        for(String item: pendingInsertions){
-            st.insert(item,"ID");
+        //System.out.println("printing scopetable debug "+st.getAllScopesAsString());
+        for(SymbolInfo item: pendingInsertions){
+            st.insert(item);
+        }
+        //System.out.println("printing scopetable debug done"+st.getAllScopesAsString());
+        pendingInsertions.clear();
+    }
+    public static void addToSymbolTable(String type){
+        for(SymbolInfo item: pendingInsertions){
+            //item.IDtype = type;
+            boolean b = st.insert(item);
+            if(b==true){
+                System.out.println(item.getPrintingLine());
+                item.setIDType(type);
+            }
         }
         pendingInsertions.clear();
     }

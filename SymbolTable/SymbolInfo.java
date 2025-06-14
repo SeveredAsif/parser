@@ -6,12 +6,22 @@ public class SymbolInfo{
         private String type;
         private SymbolInfo next;
         private String printingLine;
+        private String IDtype;
     
-        SymbolInfo(String name, String type,String print ){
+        public SymbolInfo(String name, String type,String print ){
             this.name = name;
             this.type = type;
             this.next = null;
             this.printingLine= print;
+            this.IDtype="";
+            //cout<<printingLine<<endl;
+        }
+        public SymbolInfo(String name, String type,String print ,String IDtypee){
+            this.name = name;
+            this.type = type;
+            this.next = null;
+            this.printingLine= print;
+            this.IDtype=IDtypee;
             //cout<<printingLine<<endl;
         }
         public SymbolInfo(String name, String type) {
@@ -35,6 +45,15 @@ public class SymbolInfo{
         }
         public void setType(String type){
             this.type = type;            
+        }
+        public void setIDType(String type){
+            System.out.println("ID type being changedddd from "+this.IDtype+" to "+type);
+            if(IDtype.equalsIgnoreCase("")){
+                this.IDtype = type; 
+            }              
+        }
+        public String getIDType(){
+            return this.IDtype;            
         }
         public SymbolInfo getNext(){
             return this.next;

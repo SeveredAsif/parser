@@ -7,6 +7,7 @@ options {
 @header {
 import java.io.BufferedWriter;
 import java.io.IOException;
+import SymbolTable.SymbolInfo;
 }
 
 @members {
@@ -70,6 +71,13 @@ import java.io.IOException;
             System.err.println("Parser log error: " + e.getMessage());
         }
     }
+    void addToPendingList(String name,String IDType){
+        try {
+            Main.addToPending(name,IDType);
+        } catch (Exception e) {
+            System.err.println("Parser log error: " + e.getMessage());
+        }        
+    }
     void addToPendingList(String name){
         try {
             Main.addToPending(name);
@@ -77,6 +85,15 @@ import java.io.IOException;
             System.err.println("Parser log error: " + e.getMessage());
         }        
     }
+
+    boolean lookUp(String name){
+        try {
+            return Main.lookup(name);
+        } catch (Exception e) {
+            System.err.println("Parser log error: " + e.getMessage());
+            return false;
+        } 
+     }
 }
 
 start
@@ -201,12 +218,25 @@ parameter_list
     returns [String name_line]
     : p=parameter_list COMMA t=type_specifier ID
     {
+        
+        boolean b = lookUp($ID.getText());
+        if(b==true){
+            Main.syntaxErrorCount++;
+        writeIntoParserLogFile(
+            "Error at line "
+            + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"
+        ); 
+        writeIntoErrorFile(
+            "Error at line "
+            + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"            
+        );           
+        }       
         writeIntoParserLogFile(
             "Line "
             + $ID.getLine() + ": parameter_list : parameter_list COMMA type_specifier ID\n\n" + $p.name_line + ","+ $t.text + " " + $ID.getText() + "\n"
         );          
         $name_line = $p.name_line + ","+ $t.text + " " + $ID.getText();
-addToPendingList($ID.getText());  
+addToPendingList($ID.getText(),$t.text);  
     }
     | p=parameter_list COMMA t=type_specifier
     {
@@ -218,12 +248,24 @@ addToPendingList($ID.getText());
     }
     | t=type_specifier ID
     {
+        boolean b = lookUp($ID.getText());
+        if(b==true){
+            Main.syntaxErrorCount++;
+        writeIntoParserLogFile(
+            "Error at line "
+            + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"
+        );    
+        writeIntoErrorFile(
+            "Error at line "
+            + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"            
+        );          
+        }        
         writeIntoParserLogFile(
             "Line "
             + $t.stop.getLine() + ": parameter_list : type_specifier ID\n\n" + $t.text + " " + $ID.getText() + "\n"
         );          
         $name_line = $t.text + " " + $ID.getText();
-         addToPendingList($ID.getText());  
+         addToPendingList($ID.getText(),$t.text);  
     }
     | t=type_specifier
     {
@@ -270,7 +312,7 @@ var_declaration
             + $sm.getLine() + ": var_declaration : type_specifier declaration_list SEMICOLON\n\n" + $t.text +  " " + $dl.text + ";\n"
         );
         $name_line = $t.text +  " " + $dl.text+";";   
-        Main.addToSymbolTable();        
+        Main.addToSymbolTable($t.text);        
       }
     | t=type_specifier de=declaration_list_err sm=SEMICOLON
       {
@@ -321,6 +363,19 @@ type_specifier
 declaration_list
     : dec1=declaration_list COMMA ID
     {
+        boolean b = lookUp($ID.getText());
+        if(b==true){
+            Main.syntaxErrorCount++;
+        writeIntoParserLogFile(
+            "Error at line "
+            + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"
+        ); 
+        writeIntoErrorFile(
+            "Error at line "
+            + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"            
+        );             
+        }       
+        
         writeIntoParserLogFile(
             "Line "
             + $ID.getLine() + ": declaration_list : declaration_list COMMA ID\n\n" + $dec1.text + ","+$ID.getText() + "\n"
@@ -329,14 +384,39 @@ declaration_list
     }
     | dec2=declaration_list COMMA ID LTHIRD CONST_INT RTHIRD
     {
+        
+        boolean b = lookUp($ID.getText());
+        if(b==true){
+            Main.syntaxErrorCount++;
+        writeIntoParserLogFile(
+            "Error at line "
+            + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"
+        );  
+        writeIntoErrorFile(
+            "Error at line "
+            + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"            
+        );            
+        }       
         writeIntoParserLogFile(
             "Line "
             + $ID.getLine() + ": declaration_list : declaration_list COMMA ID LTHIRD CONST_INT RTHIRD\n\n" + $dec2.text+","+$ID.getText()+"["+$CONST_INT.getText() + "]\n"
         );  
-        addToPendingList($ID.getText());  
+        addToPendingList($ID.getText(),"array");  
     }
     | ID
     {
+        boolean b = lookUp($ID.getText());
+        if(b==true){
+            Main.syntaxErrorCount++;
+        writeIntoParserLogFile(
+            "Error at line "
+            + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"
+        );      
+        writeIntoErrorFile(
+            "Error at line "
+            + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"            
+        );        
+        }
         writeIntoParserLogFile(
             "Line "
             + $ID.getLine() + ": declaration_list : ID\n\n" + $ID.getText() + "\n"
@@ -345,11 +425,24 @@ declaration_list
     }
     | ID LTHIRD CONST_INT RTHIRD
     {
+        
+        boolean b = lookUp($ID.getText());
+        if(b==true){
+            Main.syntaxErrorCount++;
+        writeIntoParserLogFile(
+            "Error at line "
+            + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"
+        );        
+        writeIntoErrorFile(
+            "Error at line "
+            + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"            
+        );      
+        }       
         writeIntoParserLogFile(
             "Line "
             + $ID.getLine() + ": declaration_list : ID LTHIRD CONST_INT RTHIRD\n\n" + $ID.getText() + "[" + $CONST_INT.getText()+ "]\n"
         );  
-        addToPendingList($ID.getText());          
+        addToPendingList($ID.getText(),"array");          
     }
     ;
 
@@ -470,24 +563,68 @@ variable
     {
         writeIntoParserLogFile(
         "Line "
-        + $ID.getLine() + ": variable : ID\n\n" + $ID.getText() + "\n"
+        + $ID.getLine() + ": variable : ID\n" 
     );    
-    $name_line=$ID.getText();     
+    $name_line=$ID.getText();   
+    if(Main.st.lookup($ID.getText())==null){
+            Main.syntaxErrorCount++;
+            writeIntoParserLogFile("Error at line " + $ID.getLine() + ": Undeclared variable " + $ID.getText() + "\n");
+            writeIntoErrorFile("Error at line " + $ID.getLine() + ": Undeclared variable " + $ID.getText() + "\n");
+    }  
+    if(Main.st.lookup($ID.getText())!=null){
+        Main.syntaxErrorCount++;
+        if(Main.st.lookup($ID.getText()).getIDType().equalsIgnoreCase("array")){
+            writeIntoParserLogFile("Error at line " + $ID.getLine() + ": Type mismatch, " + $ID.getText() + " is an array\n");
+            writeIntoErrorFile("Error at line " + $ID.getLine() + ": Type mismatch, " + $ID.getText() + " is an array\n");
+        }
+        
+        for (SymbolInfo sym : Main.pendingInsertions) {
+            if (sym.getName().equals($ID.getText())) {
+                if (sym.getIDType().equalsIgnoreCase("array")) {
+                    Main.syntaxErrorCount++;
+                    writeIntoParserLogFile("Error at line " + $ID.getLine() + ": Type mismatch, " + $ID.getText() + " is an array\n");
+                    writeIntoErrorFile("Error at line " + $ID.getLine() + ": Type mismatch, " + $ID.getText() + " is an array\n");
+                }
+                break; 
+            }
+        }
+    }
+    
+
+    writeIntoParserLogFile($ID.getText()+"\n");
+
     //addToPendingList($ID.getText());
     }
     | ID LTHIRD e=expression RTHIRD
     {
         writeIntoParserLogFile(
         "Line "
-        + $ID.getLine() + ": variable : ID LTHIRD expression RTHIRD\n\n" + $ID.getText() + "[" + $e.name_line+ "]\n"
-    ); 
+        + $ID.getLine() + ": variable : ID LTHIRD expression RTHIRD\n" 
+    );
+
+        if(!$e.type.equalsIgnoreCase("CONST_INT")){
+        Main.syntaxErrorCount++;
+        writeIntoParserLogFile(
+            "Error at line "
+            + $ID.getLine() + ": Expression inside third brackets not an integer\n"
+        ); 
+        writeIntoErrorFile(
+            "Error at line "
+            + $ID.getLine() + ": Expression inside third brackets not an integer\n"        
+        );  
+        } 
+
+        writeIntoParserLogFile(
+            $ID.getText() + "[" + $e.name_line+ "]\n"
+        );
+
     $name_line=$ID.getText() + "[" + $e.name_line+ "]";  
    // addToPendingList($ID.getText());      
     }
     ;
 
 expression
-    returns [String name_line]
+    returns [String name_line,String type]
     : l=logic_expression
     {
         writeIntoParserLogFile(
@@ -495,19 +632,31 @@ expression
         + $l.stop.getLine() + ": expression : logic_expression\n\n" + $l.name_line +"\n"
     );        
     $name_line =$l.name_line;
+    $type = $l.type;
     }
     | v=variable a=ASSIGNOP l=logic_expression
     {
         writeIntoParserLogFile(
         "Line "
-        + $l.stop.getLine() + ": expression : variable ASSIGNOP logic_expression\n\n" + $v.name_line+""+ $a.text + "" + $l.name_line +"\n"
+        + $l.stop.getLine() + ": expression : variable ASSIGNOP logic_expression\n" 
     );          
         $name_line=$v.name_line+""+ $a.text + "" + $l.name_line;
+        if(Main.st.lookup($v.name_line)!=null){
+            String IDtokenType = Main.st.lookup($v.name_line).getIDType();
+            if(!IDtokenType.equalsIgnoreCase($l.type) && !IDtokenType.equalsIgnoreCase("array")){
+                Main.syntaxErrorCount++;
+                writeIntoParserLogFile("Error at line " + + $l.stop.getLine() + ": Type Mismatch\n");
+                writeIntoErrorFile("Error at line " + + $l.stop.getLine() + ": Type Mismatch\n");
+            }
+        }
+        writeIntoParserLogFile(
+            $v.name_line+""+ $a.text + "" + $l.name_line +"\n"
+        );
     }
     ;
 
 logic_expression
-    returns [String name_line]
+    returns [String name_line,String type]
     : r=rel_expression
     {
         writeIntoParserLogFile(
@@ -515,6 +664,7 @@ logic_expression
         + $r.stop.getLine() + ": logic_expression : rel_expression\n\n" + $r.name_line +"\n"
     );
         $name_line=$r.name_line;
+        $type = $r.type;
     }
     | r=rel_expression LOGICOP re=rel_expression
     {
@@ -527,7 +677,7 @@ logic_expression
     ;
 
 rel_expression
-    returns [String name_line]
+    returns [String name_line,String type]
     : s=simple_expression
     {
         writeIntoParserLogFile(
@@ -535,6 +685,7 @@ rel_expression
         + $s.stop.getLine() + ": rel_expression : simple_expression\n\n" + $s.name_line +"\n"
     );
         $name_line=$s.name_line;
+        $type = $s.type;
     }
     | s=simple_expression RELOP s1=simple_expression
     {
@@ -547,7 +698,7 @@ rel_expression
     ;
 
 simple_expression
-    returns [String name_line]
+    returns [String name_line,String type]
     : t=term
     {
         writeIntoParserLogFile(
@@ -555,6 +706,7 @@ simple_expression
         + $t.stop.getLine() + ": simple_expression : term\n\n" + $t.name_line +"\n"
     );
         $name_line=$t.name_line;
+        $type = $t.type;
     }
     | s=simple_expression ADDOP t=term
     {
@@ -567,7 +719,7 @@ simple_expression
     ;
 
 term
-    returns [String name_line]
+    returns [String name_line,String type]
     : u=unary_expression
     {
         writeIntoParserLogFile(
@@ -575,19 +727,34 @@ term
         + $u.stop.getLine() + ": term : unary_expression\n\n" +$u.name_line +"\n"
     );
         $name_line=$u.name_line;
+        $type=$u.type;
     }
     | t=term MULOP u=unary_expression
     {
         writeIntoParserLogFile(
         "Line "
-        + $u.stop.getLine() + ": term : term MULOP unary_expression\n\n" +$t.name_line+""+$MULOP.getText()+"" +$u.name_line +"\n"
+        + $u.stop.getLine() + ": term : term MULOP unary_expression\n" 
     );
+
+        if(!$u.type.equalsIgnoreCase("CONST_INT")){
+        Main.syntaxErrorCount++;
+        writeIntoParserLogFile(
+        "Error at line "
+        + $u.stop.getLine() + ": Non-Integer operand on modulus operator" +"\n"
+    ); 
+        writeIntoErrorFile(
+        "Error at line "
+        + $u.stop.getLine() + ": Non-Integer operand on modulus operator" +"\n"
+    );       
+    }
+
+    writeIntoParserLogFile($t.name_line+""+$MULOP.getText()+"" +$u.name_line +"\n");     
         $name_line=$t.name_line+""+$MULOP.getText()+"" +$u.name_line;
     }
     ;
 
 unary_expression
-    returns [String name_line]
+    returns [String name_line, String type]
     : ADDOP u=unary_expression
     {
         writeIntoParserLogFile(
@@ -611,11 +778,12 @@ unary_expression
         + $f.stop.getLine() + ": unary_expression : factor\n\n" +$f.name_line +"\n"
     );
         $name_line=$f.name_line;
+        $type=$f.type;
     }
     ;
 
 factor
-    returns [String name_line]
+    returns [String name_line,String type]
     : v=variable
     {
         writeIntoParserLogFile(
@@ -647,6 +815,7 @@ factor
         + $CONST_INT.getLine() + ": factor : CONST_INT\n\n" +$CONST_INT.getText() +"\n"
     );
         $name_line=$CONST_INT.getText();
+        $type="CONST_INT";
     }
     | CONST_FLOAT
     {
@@ -655,6 +824,7 @@ factor
         + $CONST_FLOAT.getLine() + ": factor : CONST_FLOAT\n\n" +$CONST_FLOAT.getText() +"\n"
     );
         $name_line=$CONST_FLOAT.getText();
+        $type="CONST_FLOAT";
     }
     | v=variable INCOP
     {
