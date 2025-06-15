@@ -35,7 +35,7 @@
 1. 10:11 am - 10:45 am - input 1,2,3 matched 
 2. 10:45 am - 12:00 pm - 1,2,3 + 4 till sym table fix + multiple same parameter
 3. 03:03 pm - 4:10 - till return type mismatch and multiple declaration of variable and array 
-
+4. 7:42 pm - 10:21 pm  - total number of arguments + Cannot return value from function foo4 with void return type + Variable type cannot be void +1th argument mismatch in function func
 
 
 

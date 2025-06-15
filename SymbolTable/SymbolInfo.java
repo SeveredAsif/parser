@@ -1,5 +1,7 @@
 package SymbolTable;
 
+import java.util.ArrayList;
+
 public class SymbolInfo{
     
         private String name;
@@ -8,6 +10,9 @@ public class SymbolInfo{
         private String printingLine;
         private String IDtype;
         public String returnType;
+        public int paramNumber;
+        public ArrayList<String> paramList;
+
     
         public SymbolInfo(String name, String type,String print ){
             this.name = name;
@@ -16,6 +21,8 @@ public class SymbolInfo{
             this.printingLine= print;
             this.IDtype="";
             this.returnType="";
+            this.paramNumber = 0;
+            paramList = new ArrayList<>();
             //cout<<printingLine<<endl;
         }
         public SymbolInfo(String name, String type,String print ,String IDtypee){
@@ -25,6 +32,8 @@ public class SymbolInfo{
             this.printingLine= print;
             this.IDtype=IDtypee;
             this.returnType="";
+            this.paramNumber = 0;
+            paramList = new ArrayList<>();
             //cout<<printingLine<<endl;
         }
         public SymbolInfo(String name, String type) {

@@ -197,11 +197,20 @@ func_declaration
    
         String printingLine =  "< " + $ID.getText() + " : " + "ID" + " >";
         SymbolInfo sym = new SymbolInfo($ID.getText(),"ID",printingLine,"function");
+
+        sym.returnType = $t.text; 
+        sym.paramNumber = $p.paramNumber;
+
+        String[] paramDefs = $p.name_line.split(",");
+        for (String def : paramDefs) {
+            String type = def.trim().split(" ")[0];
+            sym.paramList.add(type);
+        }
+
         // writeIntoErrorFile(
-        //     "debug "
-        //     + $sm.getLine() + ":" +$t.name_line + " "+ $ID.getText() +  "\n"
-        // ); 
-        sym.returnType = $t.name_line;          
+        //     "debug at setting  "
+        //     + $sm.getLine() + ":" +sym.paramList.get(0) + " "+ sym.getIDType() + " " + sym.getName() +" is the function name\n"
+        // );          
         Main.st.insert(sym);
         Main.pendingInsertions.clear();
       }
@@ -218,7 +227,8 @@ func_declaration
         //     + $sm.getLine() + ": func_declaration : type_specifier ID LPAREN RPAREN SEMICOLON\n\n" +$t.name_line + " "+ $ID.getText() + "()"+ ";\n"
         // );        
         SymbolInfo sym = new SymbolInfo($ID.getText(),"ID",printingLine,"function");
-        sym.returnType = $t.name_line; 
+        sym.returnType = $t.text; 
+
         Main.st.insert(sym);
       }
     ;
@@ -244,7 +254,7 @@ func_definition
                     ); 
 
                     writeIntoErrorFile(
-                        "Error at line " + $t.text + ": Multiple declaration of " + $ID.getText() + "\n"
+                        "Error at line " + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"
                     ); 
 
 
@@ -261,26 +271,68 @@ func_definition
                     ); 
 
                     writeIntoErrorFile(
-                        "Error at line " + $t.text + ": Return type mismatch of " + $ID.getText() + "\n"
+                        "Error at line " + $ID.getLine() + ": Return type mismatch of " + $ID.getText() + "\n"
                     ); 
+
+                }
+
+                else if(s.paramNumber!=$p.paramNumber){
+
+
+                    Main.syntaxErrorCount++;
+
+                    writeIntoParserLogFile(
+                        "Error at line " + $ID.getLine() + ": Total number of arguments mismatch with declaration in function " + $ID.getText() + "\n"
+                    ); 
+
+                    writeIntoErrorFile(
+                        "Error at line " + $ID.getLine() + ": Total number of arguments mismatch with declaration in function " + $ID.getText() + "\n"
+                    ); 
+
 
                 }
             } 
         } else {
 
-            Main.st.insert($ID.getText(),"ID");
+
+            String printingLine =  "< " + $ID.getText() + " : " + "ID" + " >";
+            SymbolInfo sym = new SymbolInfo($ID.getText(),"ID",printingLine,"function");
+            
+
+            String[] paramDefs = $p.name_line.split(",");
+            for (String def : paramDefs) {
+                String type = def.trim().split(" ")[0];
+                sym.paramList.add(type);
+            }
+            Main.st.insert(sym);
 
         } 
     }
     
     RPAREN c=compound_statement
     {
+        
+        if($c.retuurn && $t.text.equalsIgnoreCase("void")){
+
+
+            writeIntoParserLogFile(
+                "Error at line " + $c.stop.getLine() + ": Cannot return value from function " + $ID.getText() + " with void return type \n"
+            ); 
+
+            writeIntoErrorFile(
+                "Error at line " + $c.stop.getLine() + ": Cannot return value from function " + $ID.getText() + " with void return type \n"
+            ); 
+
+
+        }
+
         writeIntoParserLogFile(
             "Line "
             + $c.stop.getLine() + ": func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement\n\n" +$t.text + " "+ $ID.getText() + "("+$p.name_line+ ")"+ $c.name_line + "\n"
         );          
         $name_line = $t.text + " "+ $ID.getText() + "("+$p.name_line+ ")"+ $c.name_line;
         //Main.st.insert($ID.getText(),"ID");
+
 
     }
     | t=type_specifier 
@@ -297,7 +349,7 @@ func_definition
                     ); 
 
                     writeIntoErrorFile(
-                        "Error at line " + $t.text + ": Multiple declaration of " + $ID.getText() + "\n"
+                        "Error at line " + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"
                     ); 
 
 
@@ -314,7 +366,7 @@ func_definition
                     ); 
 
                     writeIntoErrorFile(
-                        "Error at line " + $t.text + ": Return type mismatch of " + $ID.getText() + "\n"
+                        "Error at line " + $ID.getLine() + ": Return type mismatch of " + $ID.getText() + "\n"
                     ); 
 
                 }
@@ -336,10 +388,11 @@ func_definition
     ;
 
 parameter_list
-    returns [String name_line]
+    returns [String name_line, int paramNumber]
     : p=parameter_list COMMA t=type_specifier ID
     {
-        
+        $paramNumber = $p.paramNumber + 1;
+
         boolean alreadyDeclared = false;
         for (SymbolInfo si : Main.pendingInsertions) {
             if (si.getName().equals($ID.getText())) {
@@ -377,6 +430,7 @@ parameter_list
     }
     | t=type_specifier ID
     {
+        $paramNumber = 1;
         boolean alreadyDeclared = false;
         for (SymbolInfo si : Main.pendingInsertions) {
             if (si.getName().equals($ID.getText())) {
@@ -414,7 +468,7 @@ parameter_list
     ;
 
 compound_statement 
-    returns [String name_line]
+    returns [String name_line,boolean retuurn]
     : LCURL 
     {
         enterNewScope();
@@ -427,6 +481,7 @@ compound_statement
             "Line " + $RCURL.getLine() + ": compound_statement : LCURL statements RCURL\n\n{\n" + $stmts.name_line + "\n}\n"
         );
         $name_line = "{\n" + $stmts.name_line + "\n}";
+        $retuurn=$stmts.retuurn;
         exitScope();
     }
     | LCURL RCURL
@@ -443,10 +498,34 @@ var_declaration
     returns [String name_line]
     : t=type_specifier dl=declaration_list sm=SEMICOLON
       {
+
         writeIntoParserLogFile(
             "Line "
-            + $sm.getLine() + ": var_declaration : type_specifier declaration_list SEMICOLON\n\n" + $t.text +  " " + $dl.text + ";\n"
+            + $sm.getLine() + ": var_declaration : type_specifier declaration_list SEMICOLON\n"  
         );
+
+        if($t.text.equalsIgnoreCase("void")){
+
+                Main.syntaxErrorCount++;
+
+                writeIntoParserLogFile(
+                    "Error at line " + $sm.getLine() + ": Variable type cannot be void " + "\n"
+                ); 
+
+                writeIntoErrorFile(
+                    "Error at line " + $sm.getLine() + ": Variable type cannot be void "  + "\n"
+                ); 
+
+        }
+
+        writeIntoParserLogFile(
+            $t.text +  " " + $dl.text + ";\n"
+        );
+
+        
+
+
+
         $name_line = $t.text +  " " + $dl.text+";";   
         Main.addToSymbolTable($t.text);        
       }
@@ -585,13 +664,15 @@ declaration_list
     ;
 
 statements 
-    returns [String name_line]
+    returns [String name_line,boolean retuurn]
     : s=statement
     {
         writeIntoParserLogFile(
             "Line " + $s.stop.getLine() + ": statements : statement\n\n" + $s.name_line + "\n"
         );
         $name_line = $s.name_line;
+        $retuurn = $s.retuurn;
+
     }
     | s1=statements s2=statement
     {
@@ -599,17 +680,19 @@ statements
             "Line " + $s2.stop.getLine() + ": statements : statements statement\n\n" + $s1.name_line + "\n" + $s2.name_line + "\n"
         );
         $name_line = $s1.name_line + "\n" + $s2.name_line;
+        $retuurn = $s2.retuurn;
     }
     ;
 
 
-statement returns [String name_line]
+statement returns [String name_line,boolean retuurn]
     : v=var_declaration
     {
         writeIntoParserLogFile(
             "Line " + $v.stop.getLine() + ": statement : var_declaration\n\n" + $v.name_line + "\n"
         );
         $name_line = $v.name_line;
+        $retuurn=false;
     }
     | ex=expression_statement
     {
@@ -617,6 +700,7 @@ statement returns [String name_line]
             "Line " + $ex.stop.getLine() + ": statement : expression_statement\n\n" + $ex.name_line + "\n"
         );
         $name_line = $ex.name_line;
+        $retuurn=false;
     }
     | c=compound_statement
     {
@@ -624,6 +708,7 @@ statement returns [String name_line]
             "Line " + $c.stop.getLine() + ": statement : compound_statement\n\n" + $c.name_line + "\n"
         );
         $name_line = $c.name_line;
+        $retuurn=false;
     }
     | FOR LPAREN e1=expression_statement e2=expression_statement e3=expression RPAREN s=statement
     {
@@ -632,6 +717,7 @@ statement returns [String name_line]
             + "for(" + $e1.name_line + "" + $e2.name_line + "" + $e3.name_line + ")" + $s.name_line + "\n"
         );
         $name_line = "for(" + $e1.name_line + "" + $e2.name_line + "" + $e3.name_line + ")" + $s.name_line;
+        $retuurn=false;
     }
     | IF LPAREN e=expression RPAREN s=statement
     {
@@ -640,6 +726,7 @@ statement returns [String name_line]
             + "if(" + $e.name_line + ")" + $s.name_line + "\n"
         );
         $name_line = "if(" + $e.name_line + ")" + $s.name_line;
+        $retuurn=false;
     }
     | IF LPAREN e=expression RPAREN s1=statement ELSE s2=statement
     {
@@ -648,6 +735,7 @@ statement returns [String name_line]
             + "if(" + $e.name_line + ")" + $s1.name_line + "else " + $s2.name_line + "\n"
         );
         $name_line = "if(" + $e.name_line + ")" + $s1.name_line + "else " + $s2.name_line;
+        $retuurn=false;
     }
     | WHILE LPAREN e=expression RPAREN s=statement
     {
@@ -656,6 +744,7 @@ statement returns [String name_line]
             + "while(" + $e.name_line + ")" + $s.name_line + "\n"
         );
         $name_line = "while(" + $e.name_line + ")" + $s.name_line;
+        $retuurn=false;
     }
     | PRINTLN LPAREN ID RPAREN SEMICOLON
     {
@@ -664,6 +753,7 @@ statement returns [String name_line]
             + "printf(" + $ID.getText() + ");\n"
         );
         $name_line = "printf(" + $ID.getText() + ");";
+        $retuurn=false;
     }
     | RETURN e=expression SEMICOLON
     {
@@ -672,6 +762,7 @@ statement returns [String name_line]
             + "return " + $e.name_line + ";\n"
         );
         $name_line = "return " + $e.name_line + ";";
+        $retuurn=true;
     }
     ;
 
@@ -940,11 +1031,64 @@ factor
     | ID LPAREN a=argument_list RPAREN
     {
         writeIntoParserLogFile(
-        "Line "
-        + $RPAREN.getLine() + ": factor : ID LPAREN argument_list RPAREN\n\n" +$ID.getText()+"(" +$a.name_line +")\n"
-    );
-        $name_line=$ID.getText()+"(" +$a.name_line +")";
+            "Line " + $RPAREN.getLine() + ": factor : ID LPAREN argument_list RPAREN\n"
+        );
+        $name_line = $ID.getText() + "(" + $a.name_line + ")";
+
+        SymbolInfo funcSymbol = Main.st.lookup($ID.getText());
+        // writeIntoErrorFile(
+        //     "debug "
+        //     + $RPAREN.getLine() + ":"  + " "+ funcSymbol.getName() +  "\n"
+        // ); 
+
+        if (funcSymbol != null && funcSymbol.getIDType().equals("function")) {
+            List<String> expectedParams = funcSymbol.paramList;
+
+            List<String> actualArgs = new ArrayList<>();
+            if (!$a.name_line.trim().isEmpty()) {
+                String[] argDefs = $a.name_line.split(",");
+                for (String def : argDefs) {
+                    String[] tokens = def.trim().split(" ");
+                    if (tokens.length > 0) {
+                        actualArgs.add(tokens[0]);
+                    }
+                }
+            }
+
+            if (expectedParams.size() != actualArgs.size()) {
+                Main.syntaxErrorCount++;
+                writeIntoParserLogFile(
+                    "Error at line " + $RPAREN.getLine() + ": Argument count mismatch in function call to " + $ID.getText() + "\n"
+                );
+                writeIntoErrorFile(
+                  
+                    "Error at line " + $RPAREN.getLine() + ": Argument count mismatch in function call to " + $ID.getText() + "\n"
+                );
+            } else {
+                for (int i = 0; i < expectedParams.size(); i++) {
+                    String expected = expectedParams.get(i).toLowerCase();
+                    String actual = actualArgs.get(i).toLowerCase();
+
+                    if (!expected.equals(actual)) {
+                        Main.syntaxErrorCount++;
+                        writeIntoParserLogFile(
+                            "Error at line " + $RPAREN.getLine() + ": "+(i + 1)+ "th argument mismatch in function " + $ID.getText() +  "\n"
+                        );
+                        writeIntoErrorFile(
+                            "Error at line " + $RPAREN.getLine() + ": "+(i + 1)+ "th argument mismatch in function " + $ID.getText() +  "\n"
+                        );
+                        break;
+                    }
+                }
+            }
+
+            writeIntoParserLogFile(
+                $ID.getText() + "(" + $a.name_line + ")\n"
+            );
+            
+        }
     }
+
     | LPAREN e=expression RPAREN
     {
         writeIntoParserLogFile(
