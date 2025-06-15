@@ -42,6 +42,19 @@ import SymbolTable.SymbolInfo;
             System.err.println("Parser log error: " + e.getMessage());
         }
     }
+
+    void insertIntoSymbolTable(String name, String type, String IDType){
+        try {
+            String printingLine = "< " + name + " : " + "ID" + " >";
+            SymbolInfo sym = new SymbolInfo(name,type,printingLine,IDType); 
+            Main.st.insert(sym);
+
+        } catch (Exception e) {
+            System.err.println("Parser log error: " + e.getMessage());
+        }
+    }
+
+
     void enterNewScope(){
         try {
             Main.st.enterScope();
@@ -183,6 +196,7 @@ func_declaration
         $name_line=$t.text + " "+ $ID.getText() + "(" + $p.name_line +");";    
    
         Main.st.insert($ID.getText(),"ID");
+        Main.pendingInsertions.clear();
       }
     | t=type_specifier ID LPAREN RPAREN sm=SEMICOLON
       {
@@ -192,6 +206,7 @@ func_declaration
         );   
         $name_line = $t.text + " "+ $ID.getText() + "();";         
         Main.st.insert($ID.getText(),"ID");
+        Main.pendingInsertions.clear();
       }
     ;
 
@@ -232,24 +247,32 @@ parameter_list
     : p=parameter_list COMMA t=type_specifier ID
     {
         
-        boolean b = lookUp($ID.getText());
-        // if(b==true){
-        //     Main.syntaxErrorCount++;
-        // writeIntoParserLogFile(
-        //     "Error at line "
-        //     + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"
-        // ); 
-        // writeIntoErrorFile(
-        //     "Error at line "
-        //     + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"            
-        // );           
-        // }       
+        boolean alreadyDeclared = false;
+        for (SymbolInfo si : Main.pendingInsertions) {
+            if (si.getName().equals($ID.getText())) {
+                alreadyDeclared = true;
+                break;
+            }
+        }
+
+        if (alreadyDeclared) {
+            Main.syntaxErrorCount++;
+            writeIntoParserLogFile(
+                "Error at line " + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + " in parameter\n"
+            ); 
+            writeIntoErrorFile(
+                "Error at line " + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + " in parameter\n"
+            );           
+        } else {
+            addToPendingList($ID.getText(), $t.text);
+        }
+      
         writeIntoParserLogFile(
             "Line "
             + $ID.getLine() + ": parameter_list : parameter_list COMMA type_specifier ID\n\n" + $p.name_line + ","+ $t.text + " " + $ID.getText() + "\n"
         );          
         $name_line = $p.name_line + ","+ $t.text + " " + $ID.getText();
-addToPendingList($ID.getText(),$t.text);  
+    //addToPendingList($ID.getText(),$t.text);  
     }
     | p=parameter_list COMMA t=type_specifier
     {
@@ -261,24 +284,31 @@ addToPendingList($ID.getText(),$t.text);
     }
     | t=type_specifier ID
     {
-        boolean b = lookUp($ID.getText());
-        // if(b==true){
-        //     Main.syntaxErrorCount++;
-        // writeIntoParserLogFile(
-        //     "Error at line "
-        //     + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"
-        // );    
-        // writeIntoErrorFile(
-        //     "Error at line "
-        //     + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"            
-        // );          
-        // }        
+        boolean alreadyDeclared = false;
+        for (SymbolInfo si : Main.pendingInsertions) {
+            if (si.getName().equals($ID.getText())) {
+                alreadyDeclared = true;
+                break;
+            }
+        }
+
+        if (alreadyDeclared) {
+            Main.syntaxErrorCount++;
+            writeIntoParserLogFile(
+                "Error at line " + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + " in parameter\n"
+            ); 
+            writeIntoErrorFile(
+                "Error at line " + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + " in parameter\n"
+            );           
+        } else {
+            addToPendingList($ID.getText(), $t.text);
+        }       
         writeIntoParserLogFile(
             "Line "
             + $t.stop.getLine() + ": parameter_list : type_specifier ID\n\n" + $t.text + " " + $ID.getText() + "\n"
         );          
         $name_line = $t.text + " " + $ID.getText();
-         addToPendingList($ID.getText(),$t.text);  
+        // addToPendingList($ID.getText(),$t.text);  
     }
     | t=type_specifier
     {
@@ -393,7 +423,8 @@ declaration_list
             "Line "
             + $ID.getLine() + ": declaration_list : declaration_list COMMA ID\n\n" + $dec1.text + ","+$ID.getText() + "\n"
         );   
-    addToPendingList($ID.getText());       
+    addToPendingList($ID.getText());  
+    //insertIntoSymbolTable($ID.getText(),"ID");     
     }
     | dec2=declaration_list COMMA ID LTHIRD CONST_INT RTHIRD
     {
@@ -414,7 +445,8 @@ declaration_list
             "Line "
             + $ID.getLine() + ": declaration_list : declaration_list COMMA ID LTHIRD CONST_INT RTHIRD\n\n" + $dec2.text+","+$ID.getText()+"["+$CONST_INT.getText() + "]\n"
         );  
-        addToPendingList($ID.getText(),"array");  
+        addToPendingList($ID.getText(),"array"); 
+        //insertIntoSymbolTable($ID.getText(),"ID","array"); 
     }
     | ID
     {
