@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import SymbolTable.ScopeTable;
 import SymbolTable.SymbolInfo;
 import SymbolTable.SymbolTable;
 
@@ -32,10 +33,17 @@ public class Main {
     }
 
     public static boolean lookup(String name){
-        SymbolInfo sym = st.lookup(name);
-        //System.out.println("Looking for the name: "+name);
-        if(sym==null) return false;
-        return true;
+        // SymbolInfo sym = st.lookup(name);
+        // //System.out.println("Looking for the name: "+name);
+        // if(sym==null) return false;
+        // return true;
+        ScopeTable temp = st.getCurrentScope();
+        SymbolInfo found = temp.lookup(name);
+        if (found != null) {
+            return true;
+        }
+        System.out.println("\t'" + name + "' not found in current ScopeTable");
+        return false;
     }
 
     public static void addToSymbolTable(){

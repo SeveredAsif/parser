@@ -28,6 +28,13 @@
 1. 10:18 am - 11:04 pm - Non-Integer operand on modulus operator
 2. 03:45 pm - 4:30 pm - failed to bring the array type mismatch error 
 3. 7:11 pm - 7:31 pm - pause  7:49 pm - 9:43 pm - all error logging of input 2 except double error on line 9
+4. 9:45 pm - 9:52 pm - done except the error count (done that too) 
+
+
+15 JUN 2025
+1. 10:11 am - 10:45 am - input 1,2,3 matched 
+
+
 
 
 
