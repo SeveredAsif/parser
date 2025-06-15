@@ -195,7 +195,14 @@ func_declaration
         ); 
         $name_line=$t.text + " "+ $ID.getText() + "(" + $p.name_line +");";    
    
-        Main.st.insert($ID.getText(),"ID");
+        String printingLine =  "< " + $ID.getText() + " : " + "ID" + " >";
+        SymbolInfo sym = new SymbolInfo($ID.getText(),"ID",printingLine,"function");
+        // writeIntoErrorFile(
+        //     "debug "
+        //     + $sm.getLine() + ":" +$t.name_line + " "+ $ID.getText() +  "\n"
+        // ); 
+        sym.returnType = $t.name_line;          
+        Main.st.insert(sym);
         Main.pendingInsertions.clear();
       }
     | t=type_specifier ID LPAREN RPAREN sm=SEMICOLON
@@ -205,8 +212,14 @@ func_declaration
             + $sm.getLine() + ": func_declaration : type_specifier ID LPAREN RPAREN SEMICOLON\n\n" +$t.text + " "+ $ID.getText() + "()"+ ";\n"
         );   
         $name_line = $t.text + " "+ $ID.getText() + "();";         
-        Main.st.insert($ID.getText(),"ID");
-        Main.pendingInsertions.clear();
+        String printingLine =  "< " + $ID.getText() + " : " + "ID" + " >";
+        // writeIntoErrorFile(
+        //     "debug "
+        //     + $sm.getLine() + ": func_declaration : type_specifier ID LPAREN RPAREN SEMICOLON\n\n" +$t.name_line + " "+ $ID.getText() + "()"+ ";\n"
+        // );        
+        SymbolInfo sym = new SymbolInfo($ID.getText(),"ID",printingLine,"function");
+        sym.returnType = $t.name_line; 
+        Main.st.insert(sym);
       }
     ;
 
@@ -215,22 +228,102 @@ func_definition
     : t=type_specifier 
     ID
     {
-        Main.st.insert($ID.getText(),"ID");    
+           
     } 
-    LPAREN p=parameter_list RPAREN c=compound_statement
+    LPAREN p=parameter_list 
+    {
+
+        if(Main.lookup($ID.getText())){
+            SymbolInfo s = Main.st.lookup($ID.getText());
+            if(!s.getIDType().equalsIgnoreCase("function")){
+                
+                    Main.syntaxErrorCount++;
+
+                    writeIntoParserLogFile(
+                        "Error at line " + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"
+                    ); 
+
+                    writeIntoErrorFile(
+                        "Error at line " + $t.text + ": Multiple declaration of " + $ID.getText() + "\n"
+                    ); 
+
+
+            } else if(s.getIDType().equalsIgnoreCase("function")){
+
+
+                if(!s.returnType.equalsIgnoreCase($t.text)){
+
+
+                    Main.syntaxErrorCount++;
+
+                    writeIntoParserLogFile(
+                        "Error at line " + $ID.getLine() + ": Return type mismatch of " + $ID.getText() + "\n"
+                    ); 
+
+                    writeIntoErrorFile(
+                        "Error at line " + $t.text + ": Return type mismatch of " + $ID.getText() + "\n"
+                    ); 
+
+                }
+            } 
+        } else {
+
+            Main.st.insert($ID.getText(),"ID");
+
+        } 
+    }
+    
+    RPAREN c=compound_statement
     {
         writeIntoParserLogFile(
             "Line "
             + $c.stop.getLine() + ": func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement\n\n" +$t.text + " "+ $ID.getText() + "("+$p.name_line+ ")"+ $c.name_line + "\n"
         );          
         $name_line = $t.text + " "+ $ID.getText() + "("+$p.name_line+ ")"+ $c.name_line;
-        Main.st.insert($ID.getText(),"ID");
+        //Main.st.insert($ID.getText(),"ID");
 
     }
     | t=type_specifier 
     ID
     {
-        Main.st.insert($ID.getText(),"ID");
+        if(Main.lookup($ID.getText())){
+            SymbolInfo s = Main.st.lookup($ID.getText());
+            if(!s.getIDType().equalsIgnoreCase("function")){
+                
+                    Main.syntaxErrorCount++;
+
+                    writeIntoParserLogFile(
+                        "Error at line " + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"
+                    ); 
+
+                    writeIntoErrorFile(
+                        "Error at line " + $t.text + ": Multiple declaration of " + $ID.getText() + "\n"
+                    ); 
+
+
+            } else if(s.getIDType().equalsIgnoreCase("function")){
+
+
+                if(!s.returnType.equalsIgnoreCase($t.text)){
+
+
+                    Main.syntaxErrorCount++;
+
+                    writeIntoParserLogFile(
+                        "Error at line " + $ID.getLine() + ": Return type mismatch of " + $ID.getText() + "\n"
+                    ); 
+
+                    writeIntoErrorFile(
+                        "Error at line " + $t.text + ": Return type mismatch of " + $ID.getText() + "\n"
+                    ); 
+
+                }
+            } 
+        } else {
+
+            Main.st.insert($ID.getText(),"ID");
+
+        }
     } 
     LPAREN RPAREN c=compound_statement
     {

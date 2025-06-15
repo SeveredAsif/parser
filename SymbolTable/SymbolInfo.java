@@ -7,6 +7,7 @@ public class SymbolInfo{
         private SymbolInfo next;
         private String printingLine;
         private String IDtype;
+        public String returnType;
     
         public SymbolInfo(String name, String type,String print ){
             this.name = name;
@@ -14,6 +15,7 @@ public class SymbolInfo{
             this.next = null;
             this.printingLine= print;
             this.IDtype="";
+            this.returnType="";
             //cout<<printingLine<<endl;
         }
         public SymbolInfo(String name, String type,String print ,String IDtypee){
@@ -22,6 +24,7 @@ public class SymbolInfo{
             this.next = null;
             this.printingLine= print;
             this.IDtype=IDtypee;
+            this.returnType="";
             //cout<<printingLine<<endl;
         }
         public SymbolInfo(String name, String type) {
