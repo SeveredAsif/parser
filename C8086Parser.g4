@@ -313,7 +313,7 @@ func_definition
     {
         
         if($c.retuurn && $t.text.equalsIgnoreCase("void")){
-
+            Main.syntaxErrorCount++;
 
             writeIntoParserLogFile(
                 "Error at line " + $c.stop.getLine() + ": Cannot return value from function " + $ID.getText() + " with void return type \n"
@@ -1304,11 +1304,11 @@ factor
                         }
                     }
 
-                    if (!expected.equals(actualIdType)) {
+                    if (!expected.equals(actualIdType) && !actualIdType.equalsIgnoreCase("array")) {
                         Main.syntaxErrorCount++;
                         
                         // writeIntoParserLogFile(
-                        //     "Actual: " + actual + " ,Got: "+expected+ "actual id type: "+actualIdType+"\n"
+                        //     "Actual: " + actualIdType + " ,Got: "+expected+ "expected id type: "+expected+"\n"
                             
                         // );
                         writeIntoParserLogFile(
