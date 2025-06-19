@@ -17,6 +17,28 @@ import java.io.IOException;
             System.err.println("Lexer log error: " + e.getMessage());
         }
     }
+    // helper to write into parserLogFile
+    void writeIntoParserLogFile(String message) {
+        try {
+            Main.parserLogFile.write(message);
+            Main.parserLogFile.newLine();
+            Main.parserLogFile.flush();
+        } catch (IOException e) {
+            System.err.println("Parser log error: " + e.getMessage());
+        }
+    }
+
+    // helper to write into Main.errorFile
+    void writeIntoErrorFile(String message) {
+        try {
+            Main.errorFile.write(message);
+            Main.errorFile.newLine();
+            Main.errorFile.flush();
+        } catch (IOException e) {
+            System.err.println("Error file write error: " + e.getMessage());
+        }
+    }
+
 }
 
 // Comments
@@ -92,3 +114,15 @@ CONST_FLOAT
         writeIntoLexLogFile("Line# " + getLine() + ": Token <CONST_FLOAT> Lexeme " + getText());
     }
     ;
+
+ERROR_CHAR
+    : .  // Matches any single character not already matched by other rules
+    {
+        System.err.println("Unrecognized character: " + getText());
+        Main.syntaxErrorCount++;
+        writeIntoParserLogFile("Error at line " + getLine() + ": Unrecognized character " + getText() + "\n");
+        writeIntoErrorFile("Error at line " + getLine() + ": Unrecognized character " + getText() + "\n");
+        writeIntoLexLogFile("Line# " + getLine() + ": Token <ERROR_CHAR> Lexeme " + getText());
+    }
+    ;
+

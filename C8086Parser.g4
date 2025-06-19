@@ -465,9 +465,24 @@ parameter_list
     {
         writeIntoParserLogFile(
             "Line "
-            + $t.stop.getLine() + ": parameter_list : type_specifier \n\n" + $t.text + "\n"
+            + $t.stop.getLine() + ": parameter_list : type_specifier\n\n" + $t.text + "\n"
         );          
         $name_line = $t.text ;
+    }
+    |t=type_specifier ADDOP
+    { 
+        Main.syntaxErrorCount++;
+        writeIntoParserLogFile(
+            "Line "
+            + $t.stop.getLine() + ": parameter_list : type_specifier\n\n" + $t.text + "\n"
+        ); 
+        writeIntoParserLogFile(
+            "Error at line " + $ADDOP.getLine() + ": syntax error, unexpected ADDOP, expecting RPAREN or COMMA\n"
+        ); 
+        writeIntoErrorFile(
+            "Error at line " + $ADDOP.getLine() + ": syntax error, unexpected ADDOP, expecting RPAREN or COMMA\n"
+        );  
+        $name_line = $t.text;      
     }
     ;
 
@@ -490,10 +505,12 @@ compound_statement
     }
     | LCURL RCURL
     {
+        enterNewScope();
         writeIntoParserLogFile(
             "Line " + $RCURL.getLine() + ": compound_statement : LCURL RCURL\n\n{}\n"
         );
         $name_line = "{}";
+        exitScope();
     }
     ;
 
@@ -523,14 +540,14 @@ var_declaration
         }
 
         writeIntoParserLogFile(
-            $t.text +  " " + $dl.text + ";\n"
+            $t.text +  " " + $dl.name_line + ";\n"
         );
 
         
 
 
 
-        $name_line = $t.text +  " " + $dl.text+";";   
+        $name_line = $t.text +  " " + $dl.name_line+";";   
         Main.addToSymbolTable($t.text);        
       }
     | t=type_specifier de=declaration_list_err sm=SEMICOLON
@@ -580,6 +597,7 @@ type_specifier
     ;
 
 declaration_list
+returns [String name_line]
     : dec1=declaration_list COMMA ID
     {
         boolean b = lookUp($ID.getText());
@@ -597,8 +615,9 @@ declaration_list
         
         writeIntoParserLogFile(
             "Line "
-            + $ID.getLine() + ": declaration_list : declaration_list COMMA ID\n\n" + $dec1.text + ","+$ID.getText() + "\n"
+            + $ID.getLine() + ": declaration_list : declaration_list COMMA ID\n\n" + $dec1.name_line + ","+$ID.getText() + "\n"
         );   
+    $name_line=$dec1.name_line + ","+$ID.getText();
     addToPendingList($ID.getText());  
     //insertIntoSymbolTable($ID.getText(),"ID");     
     }
@@ -619,10 +638,25 @@ declaration_list
         }       
         writeIntoParserLogFile(
             "Line "
-            + $ID.getLine() + ": declaration_list : declaration_list COMMA ID LTHIRD CONST_INT RTHIRD\n\n" + $dec2.text+","+$ID.getText()+"["+$CONST_INT.getText() + "]\n"
+            + $ID.getLine() + ": declaration_list : declaration_list COMMA ID LTHIRD CONST_INT RTHIRD\n\n" + $dec2.name_line+","+$ID.getText()+"["+$CONST_INT.getText() + "]\n"
         );  
+        $name_line = $dec2.name_line+","+$ID.getText()+"["+$CONST_INT.getText() + "]";
         addToPendingList($ID.getText(),"array"); 
         //insertIntoSymbolTable($ID.getText(),"ID","array"); 
+    }
+    |dec3=declaration_list ADDOP ID
+    {
+        Main.syntaxErrorCount++;   
+        writeIntoParserLogFile(
+            "Error at line "
+            + $ID.getLine() + ": syntax error, unexpected ADDOP, expecting COMMA or SEMICOLON\n"
+        );  
+        writeIntoErrorFile(
+            "Error at line "
+            + $ID.getLine() + ": syntax error, unexpected ADDOP, expecting COMMA or SEMICOLON\n"            
+        );  
+        $name_line=$dec3.name_line;
+               
     }
     | ID
     {
@@ -642,6 +676,7 @@ declaration_list
             "Line "
             + $ID.getLine() + ": declaration_list : ID\n\n" + $ID.getText() + "\n"
         );
+        $name_line= $ID.getText();
         addToPendingList($ID.getText());            
     }
     | ID LTHIRD CONST_INT RTHIRD
@@ -663,6 +698,7 @@ declaration_list
             "Line "
             + $ID.getLine() + ": declaration_list : ID LTHIRD CONST_INT RTHIRD\n\n" + $ID.getText() + "[" + $CONST_INT.getText()+ "]\n"
         );  
+        $name_line=$ID.getText() + "[" + $CONST_INT.getText()+ "]";
         addToPendingList($ID.getText(),"array");          
     }
     ;
@@ -680,10 +716,16 @@ statements
     }
     | s1=statements s2=statement
     {
-        writeIntoParserLogFile(
-            "Line " + $s2.stop.getLine() + ": statements : statements statement\n\n" + $s1.name_line + "\n" + $s2.name_line + "\n"
-        );
-        $name_line = $s1.name_line + "\n" + $s2.name_line;
+        if($s2.name_line!=null){
+        //if(!$s2.name_line.equalsIgnoreCase("debug")){
+            writeIntoParserLogFile(
+                "Line " + $s2.stop.getLine() + ": statements : statements statement\n\n" + $s1.name_line + "\n" + $s2.name_line + "\n"
+            );
+            $name_line = $s1.name_line + "\n" + $s2.name_line;
+          } else {
+           $name_line = $s1.name_line; 
+          }
+        
         $retuurn = $s2.retuurn;
     }
     ;
@@ -700,10 +742,16 @@ statement returns [String name_line,boolean retuurn]
     }
     | ex=expression_statement
     {
+        if($ex.name_line!=null){
+        //if(!$ex.name_line.equalsIgnoreCase("debug")){ 
         writeIntoParserLogFile(
             "Line " + $ex.stop.getLine() + ": statement : expression_statement\n\n" + $ex.name_line + "\n"
         );
+        
+        //}
+        }
         $name_line = $ex.name_line;
+        
         $retuurn=false;
     }
     | c=compound_statement
@@ -798,10 +846,18 @@ expression_statement
     }
     | ex=expression SEMICOLON
     {
+        if($ex.name_line!=null){
+        if(!$ex.name_line.equalsIgnoreCase("debug")){
+        //"debug check: [" + $ex.name_line + "]\n"+
         writeIntoParserLogFile(
             "Line " + $SEMICOLON.getLine() + ": expression_statement : expression SEMICOLON\n\n" + $ex.name_line + ";\n"
         );
         $name_line = $ex.name_line + ";";
+        }
+        }else{ 
+            $name_line =  "debug";
+         }
+        
     }
     ;
 
@@ -893,20 +949,30 @@ expression
     returns [String name_line,String type]
     : l=logic_expression
     {
-        writeIntoParserLogFile(
-        "Line "
-        + $l.stop.getLine() + ": expression : logic_expression\n\n" + $l.name_line +"\n"
-    );        
+        if(!$l.name_line.equalsIgnoreCase("debug")){
+            writeIntoParserLogFile(
+            "Line "
+            + $l.stop.getLine() + ": expression : logic_expression\n\n" + $l.name_line +"\n"
+        ); 
+         }
+       
     $name_line =$l.name_line;
     $type = $l.type;
     }
     | v=variable a=ASSIGNOP l=logic_expression
     {
-        writeIntoParserLogFile(
-        "Line "
-        + $l.stop.getLine() + ": expression : variable ASSIGNOP logic_expression\n" 
-    );          
-        $name_line=$v.name_line+""+ $a.text + "" + $l.name_line;
+        if(!$l.name_line.equalsIgnoreCase("debug")){ 
+                writeIntoParserLogFile(
+                "Line "
+                + $l.stop.getLine() + ": expression : variable ASSIGNOP logic_expression\n" 
+            );  
+            $name_line=$v.name_line+""+ $a.text + "" + $l.name_line;
+            
+         } else{
+            $name_line=$l.name_line;
+          }
+        
+        
         String fullName = $v.name_line;
         String actualName = fullName.contains("[") ? fullName.substring(0, fullName.indexOf("[")): fullName;
         boolean isError = false;
@@ -943,9 +1009,11 @@ expression
                 }
             }
         }
+        if(!$l.name_line.equalsIgnoreCase("debug")){ 
         writeIntoParserLogFile(
             $v.name_line+""+ $a.text + "" + $l.name_line +"\n"
         );
+        }
     }
     ;
 
@@ -953,10 +1021,12 @@ logic_expression
     returns [String name_line,String type]
     : r=rel_expression
     {
-        writeIntoParserLogFile(
-        "Line "
-        + $r.stop.getLine() + ": logic_expression : rel_expression\n\n" + $r.name_line +"\n"
-    );
+        if(!$r.name_line.equalsIgnoreCase("debug")){  
+            writeIntoParserLogFile(
+            "Line "
+            + $r.stop.getLine() + ": logic_expression : rel_expression\n\n" + $r.name_line +"\n"
+            );
+        }
         $name_line=$r.name_line;
         $type = $r.type;
     }
@@ -974,10 +1044,12 @@ rel_expression
     returns [String name_line,String type]
     : s=simple_expression
     {
-        writeIntoParserLogFile(
-        "Line "
-        + $s.stop.getLine() + ": rel_expression : simple_expression\n\n" + $s.name_line +"\n"
-    );
+        if(!$s.name_line.equalsIgnoreCase("debug")){ 
+                writeIntoParserLogFile(
+                "Line "
+                + $s.stop.getLine() + ": rel_expression : simple_expression\n\n" + $s.name_line +"\n"
+            );
+        }
         $name_line=$s.name_line;
         $type = $s.type;
     }
@@ -1009,17 +1081,45 @@ simple_expression
         + $t.stop.getLine() + ": simple_expression : simple_expression ADDOP term\n\n" +$s.name_line+""+$ADDOP.getText()+"" +$t.name_line +"\n"
     );
         $name_line=$s.name_line+""+$ADDOP.getText()+"" +$t.name_line;
-    }    
+    }
+    // |t2=term ERROR_CHAR
+    // {
+    //     writeIntoParserLogFile(
+    //         "Error at line " + $ERROR_CHAR.getLine() + ": Unrecognized character " +$ERROR_CHAR.getText()+"\n"  
+            
+    //     );
+    //     writeIntoErrorFile(
+    //         "Error at line " + $ERROR_CHAR.getLine() + ": Unrecognized character " +$ERROR_CHAR.getText()+"\n"
+    //     );
+    //     $name_line=$t2.name_line;
+    // }
+    |s=simple_expression ADDOP ASSIGNOP
+ 
+    {
+        Main.syntaxErrorCount++;
+        writeIntoParserLogFile(
+            "Error at line " + $ASSIGNOP.getLine() + ": syntax error, unexpected ASSIGNOP\n"  
+            
+        );
+        writeIntoErrorFile(
+            "Error at line " + $ASSIGNOP.getLine() + ": syntax error, unexpected ASSIGNOP\n"
+        );
+        $name_line="debug";
+    }
+    |  
     ;
 
 term
     returns [String name_line,String type]
     : u=unary_expression
     {
-        writeIntoParserLogFile(
-        "Line "
-        + $u.stop.getLine() + ": term : unary_expression\n\n" +$u.name_line +"\n"
-    );
+        if(!$u.name_line.equalsIgnoreCase("debug")){ 
+            writeIntoParserLogFile(
+            "Line "
+            + $u.stop.getLine() + ": term : unary_expression\n\n" +$u.name_line +"\n"
+        );
+         }
+
         $name_line=$u.name_line;
         $type=$u.type;
     }
@@ -1097,10 +1197,13 @@ unary_expression
     }
     | f=factor
     {
-        writeIntoParserLogFile(
-        "Line "
-        + $f.stop.getLine() + ": unary_expression : factor\n\n" +$f.name_line +"\n"
-    );
+        if(!$f.name_line.equalsIgnoreCase("debug")){ 
+            writeIntoParserLogFile(
+            "Line "
+            + $f.stop.getLine() + ": unary_expression : factor\n\n" +$f.name_line +"\n"
+        );
+         }
+
         $name_line=$f.name_line;
         $type=$f.type;
     }
@@ -1116,6 +1219,21 @@ factor
     );
         $name_line=$v.name_line;
     }
+    // |assign=ASSIGNOP
+    // {
+            
+    //     Main.syntaxErrorCount++;
+        
+    //     writeIntoParserLogFile(
+    //         "Error at line " + $assign.getLine() + ": syntax error, unexpected ASSIGNOP\n"
+            
+    //     );
+    //     writeIntoErrorFile(
+    //         "Error at line " + $assign.getLine() + ": syntax error, unexpected ASSIGNOP\n"
+    //     );
+    //     $name_line="debug";
+      
+    // }
     | ID LPAREN a=argument_list RPAREN
     {
         writeIntoParserLogFile(
@@ -1188,7 +1306,11 @@ factor
 
                     if (!expected.equals(actualIdType)) {
                         Main.syntaxErrorCount++;
-                        //"Actual: " + actual + " ,Got: "+expected+ "actual id type: "+actualIdType+"\n"
+                        
+                        // writeIntoParserLogFile(
+                        //     "Actual: " + actual + " ,Got: "+expected+ "actual id type: "+actualIdType+"\n"
+                            
+                        // );
                         writeIntoParserLogFile(
                             "Error at line " + $RPAREN.getLine() + ": "+(i + 1)+ "th argument mismatch in function " + $ID.getText() +  "\n"
                             
