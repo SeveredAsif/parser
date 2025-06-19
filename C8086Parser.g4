@@ -297,7 +297,7 @@ func_definition
 
             String printingLine =  "< " + $ID.getText() + " : " + "ID" + " >";
             SymbolInfo sym = new SymbolInfo($ID.getText(),"ID",printingLine,"function");
-            
+            sym.returnType=$t.text;            
 
             String[] paramDefs = $p.name_line.split(",");
             for (String def : paramDefs) {
@@ -373,7 +373,11 @@ func_definition
             } 
         } else {
 
-            Main.st.insert($ID.getText(),"ID");
+                String printingLine =  "< " + $ID.getText() + " : " + "ID" + " >";
+                SymbolInfo sym = new SymbolInfo($ID.getText(),"ID",printingLine,"function");
+                sym.returnType = $t.text; 
+
+                Main.st.insert(sym);
 
         }
     } 
@@ -509,11 +513,11 @@ var_declaration
                 Main.syntaxErrorCount++;
 
                 writeIntoParserLogFile(
-                    "Error at line " + $sm.getLine() + ": Variable type cannot be void " + "\n"
+                    "Error at line " + $sm.getLine() + ": Variable type cannot be void" + "\n"
                 ); 
 
                 writeIntoErrorFile(
-                    "Error at line " + $sm.getLine() + ": Variable type cannot be void "  + "\n"
+                    "Error at line " + $sm.getLine() + ": Variable type cannot be void"  + "\n"
                 ); 
 
         }
@@ -589,7 +593,7 @@ declaration_list
             "Error at line "
             + $ID.getLine() + ": Multiple declaration of " + $ID.getText() + "\n"            
         );             
-        }       
+        }     
         
         writeIntoParserLogFile(
             "Line "
@@ -749,9 +753,25 @@ statement returns [String name_line,boolean retuurn]
     | PRINTLN LPAREN ID RPAREN SEMICOLON
     {
         writeIntoParserLogFile(
-            "Line " + $SEMICOLON.getLine() + ": statement : PRINTLN LPAREN ID RPAREN SEMICOLON\n\n"
-            + "printf(" + $ID.getText() + ");\n"
+            "Line " + $SEMICOLON.getLine() + ": statement : PRINTLN LPAREN ID RPAREN SEMICOLON\n"
         );
+
+        boolean b = lookUp($ID.getText());
+        if(b==false){
+            Main.syntaxErrorCount++;
+        writeIntoParserLogFile(
+            "Error at line "
+            + $ID.getLine() + ": Undeclared variable " + $ID.getText() + "\n"
+        );        
+        writeIntoErrorFile(
+            "Error at line "
+            + $ID.getLine() + ": Undeclared variable " + $ID.getText() + "\n"            
+        );      
+        } 
+        writeIntoParserLogFile(
+            "printf(" + $ID.getText() + ");\n"
+        );
+        
         $name_line = "printf(" + $ID.getText() + ");";
         $retuurn=false;
     }
@@ -832,6 +852,22 @@ variable
         + $ID.getLine() + ": variable : ID LTHIRD expression RTHIRD\n" 
     );
 
+        if(Main.st.lookup($ID.getText())!=null){
+            if(!Main.st.lookup($ID.getText()).getIDType().equalsIgnoreCase("array")){
+
+                Main.syntaxErrorCount++;
+                writeIntoParserLogFile(
+                    "Error at line "
+                    + $ID.getLine() + ": "+$ID.getText()+" not an array\n"
+                ); 
+                writeIntoErrorFile(
+                    "Error at line "
+                    + $ID.getLine() + ": "+$ID.getText()+" not an array\n"
+                );
+            }
+        }
+
+
         if(!$e.type.equalsIgnoreCase("CONST_INT")){
         Main.syntaxErrorCount++;
         writeIntoParserLogFile(
@@ -871,14 +907,40 @@ expression
         + $l.stop.getLine() + ": expression : variable ASSIGNOP logic_expression\n" 
     );          
         $name_line=$v.name_line+""+ $a.text + "" + $l.name_line;
-        if(Main.st.lookup($v.name_line)!=null){
-            String IDtokenType = Main.st.lookup($v.name_line).getIDType();
+        String fullName = $v.name_line;
+        String actualName = fullName.contains("[") ? fullName.substring(0, fullName.indexOf("[")): fullName;
+        boolean isError = false;
+        if($l.type!=null){  
+            if($l.type.equalsIgnoreCase("void")){
+                Main.syntaxErrorCount++;
+                writeIntoParserLogFile("Error at line "  + $l.stop.getLine() + ": Void function used in expression\n");
+                writeIntoErrorFile("Error at line " +  $l.stop.getLine() + ": Void function used in expression\n");  
+                isError = true;          
+            }
+        }
+
+        // if(Main.st.lookup($v.name_line)==null){
+        //     writeIntoParserLogFile("debug at line "  + $l.stop.getLine() +$v.name_line+" not found in symbol table\n");
+        // }
+
+        if(Main.st.lookup(actualName)!=null && !isError){
+            SymbolInfo sym = Main.st.lookup(actualName);
+            String IDtokenType = sym.getIDType();
+            //writeIntoParserLogFile("debug at line "  + $l.stop.getLine() +IDtokenType+"\n");
             if(!IDtokenType.equalsIgnoreCase(normalizeType($l.type)) && !IDtokenType.equalsIgnoreCase("array") && $l.type!=null){
                 if(!(IDtokenType.equalsIgnoreCase("float") && normalizeType($l.type).equalsIgnoreCase("int"))){
                     Main.syntaxErrorCount++;
                     writeIntoParserLogFile("Error at line "  + $l.stop.getLine() + ": Type Mismatch\n");
                     writeIntoErrorFile("Error at line " +  $l.stop.getLine() + ": Type Mismatch\n");
                  }
+            }
+            if(IDtokenType.equalsIgnoreCase("array")&& $l.type!=null){
+                //writeIntoParserLogFile("debug at line "  + $l.stop.getLine() +sym.arrayType+"\n");
+                if(!sym.arrayType.equalsIgnoreCase(normalizeType($l.type))){
+                    Main.syntaxErrorCount++;
+                    writeIntoParserLogFile("Error at line "  + $l.stop.getLine() + ": Type Mismatch\n");
+                    writeIntoErrorFile("Error at line " +  $l.stop.getLine() + ": Type Mismatch\n");                    
+                }
             }
         }
         writeIntoParserLogFile(
@@ -969,8 +1031,34 @@ term
     );
 
         
-        if($u.type!=null){
-                if(!$u.type.equalsIgnoreCase("CONST_INT")){
+        if($u.name_line.equalsIgnoreCase("0") && $MULOP.getText().equalsIgnoreCase("%")){ 
+            Main.syntaxErrorCount++;
+            writeIntoParserLogFile(
+            "Error at line "
+            + $u.stop.getLine() + ": Modulus by Zero" +"\n"
+        ); 
+            writeIntoErrorFile(
+            "Error at line "
+            + $u.stop.getLine() + ": Modulus by Zero" +"\n"
+        ); 
+        }
+
+        
+        else if($u.type!=null){
+                if($u.type.equalsIgnoreCase("void")){
+
+                    Main.syntaxErrorCount++;
+                    writeIntoParserLogFile(
+                    "Error at line "
+                    + $u.stop.getLine() + ": Void function used in expression" +"\n"
+                ); 
+                    writeIntoErrorFile(
+                    "Error at line "
+                    + $u.stop.getLine() + ": Void function used in expression" +"\n"
+                );                    
+                }
+
+                else if(!$u.type.equalsIgnoreCase("CONST_INT")){
                     Main.syntaxErrorCount++;
                     writeIntoParserLogFile(
                     "Error at line "
@@ -1036,12 +1124,29 @@ factor
         $name_line = $ID.getText() + "(" + $a.name_line + ")";
 
         SymbolInfo funcSymbol = Main.st.lookup($ID.getText());
-        // writeIntoErrorFile(
+
+
+        if (funcSymbol == null) {
+            Main.syntaxErrorCount++;
+            
+            writeIntoParserLogFile(
+                "Error at line " + $RPAREN.getLine() + ": Undefined function " + $ID.getText() +  "\n"
+                
+            );
+            writeIntoErrorFile(
+                "Error at line " + $RPAREN.getLine() + ": Undefined function " + $ID.getText() +  "\n"
+            );
+        }
+
+        else if (funcSymbol != null && funcSymbol.getIDType().equals("function")) {
+        // if(funcSymbol.getName().equals("foo4")){
+        // writeIntoParserLogFile(
         //     "debug "
-        //     + $RPAREN.getLine() + ":"  + " "+ funcSymbol.getName() +  "\n"
+        //     + $RPAREN.getLine() + ":"  + " "+ funcSymbol.getName() +  "return type:" + funcSymbol.returnType + "\n"
         // ); 
 
-        if (funcSymbol != null && funcSymbol.getIDType().equals("function")) {
+        // }
+            $type= funcSymbol.returnType;
             List<String> expectedParams = funcSymbol.paramList;
 
             List<String> actualArgs = new ArrayList<>();
@@ -1058,21 +1163,35 @@ factor
             if (expectedParams.size() != actualArgs.size()) {
                 Main.syntaxErrorCount++;
                 writeIntoParserLogFile(
-                    "Error at line " + $RPAREN.getLine() + ": Argument count mismatch in function call to " + $ID.getText() + "\n"
+                    "Error at line " + $RPAREN.getLine() + ": Total number of arguments mismatch with declaration in function " + $ID.getText() + "\n"
                 );
                 writeIntoErrorFile(
                   
-                    "Error at line " + $RPAREN.getLine() + ": Argument count mismatch in function call to " + $ID.getText() + "\n"
+                    "Error at line " + $RPAREN.getLine() + ": Total number of arguments mismatch with declaration in function " + $ID.getText() + "\n"
                 );
             } else {
                 for (int i = 0; i < expectedParams.size(); i++) {
                     String expected = expectedParams.get(i).toLowerCase();
-                    String actual = actualArgs.get(i).toLowerCase();
+                    String actual = actualArgs.get(i);
+                    String actualIdType="not found";
 
-                    if (!expected.equals(actual)) {
+                    if(Main.st.lookup(actual)!=null){
+                        actualIdType = Main.st.lookup(actual).getIDType();
+                    }else{
+                        if (actual.contains(".")) {
+                            actualIdType = "float";
+                        }
+                        else{ 
+                            actualIdType = "int";
+                        }
+                    }
+
+                    if (!expected.equals(actualIdType)) {
                         Main.syntaxErrorCount++;
+                        //"Actual: " + actual + " ,Got: "+expected+ "actual id type: "+actualIdType+"\n"
                         writeIntoParserLogFile(
                             "Error at line " + $RPAREN.getLine() + ": "+(i + 1)+ "th argument mismatch in function " + $ID.getText() +  "\n"
+                            
                         );
                         writeIntoErrorFile(
                             "Error at line " + $RPAREN.getLine() + ": "+(i + 1)+ "th argument mismatch in function " + $ID.getText() +  "\n"
@@ -1081,12 +1200,11 @@ factor
                     }
                 }
             }
-
+            
+        }
             writeIntoParserLogFile(
                 $ID.getText() + "(" + $a.name_line + ")\n"
             );
-            
-        }
     }
 
     | LPAREN e=expression RPAREN

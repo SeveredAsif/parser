@@ -60,7 +60,28 @@ public class Main {
             boolean b = st.insert(item);
             if(b==true){
                 System.out.println(item.getPrintingLine());
-                item.setIDType(type);
+                if(item.getIDType().equalsIgnoreCase("array")){
+                    if(item.arrayType.equals("")){
+                        if(item.getName().equals("c")){
+                            System.out.println("c getting arrayType "+type);
+                        }
+                        item.arrayType=type;
+                    }
+                }else{
+                    item.setIDType(type);
+                }
+                
+            }
+            else{
+                SymbolInfo sym = st.lookup(item.getName());
+                if(sym.getIDType().equalsIgnoreCase("array")){
+                    if(sym.arrayType.equals("")){
+                        if(sym.getName().equals("c")){
+                            System.out.println("c getting arrayType "+type);
+                        }
+                        sym.arrayType=type;
+                    }
+                }
             }
         }
         pendingInsertions.clear();

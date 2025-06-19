@@ -38,6 +38,7 @@
 4. 7:42 pm - 10:21 pm  - total number of arguments + Cannot return value from function foo4 with void return type + Variable type cannot be void +1th argument mismatch in function func
 
 
-
-
-
+19 JUN 2025
+1. 10:40 pm - 10:55 pm pause 
+2. 11:18 am - 2:03 pm - not an array + 1th argument error fix (still left) + Void function used in expression(2 places) + arrayType addedd and mismatch caught
+3. 3:03 pm - modulus by zero + println undeclared variable + undefined function (input 4 done)

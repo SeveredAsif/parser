@@ -12,6 +12,7 @@ public class SymbolInfo{
         public String returnType;
         public int paramNumber;
         public ArrayList<String> paramList;
+        public String arrayType;
 
     
         public SymbolInfo(String name, String type,String print ){
@@ -23,6 +24,7 @@ public class SymbolInfo{
             this.returnType="";
             this.paramNumber = 0;
             paramList = new ArrayList<>();
+            this.arrayType="";
             //cout<<printingLine<<endl;
         }
         public SymbolInfo(String name, String type,String print ,String IDtypee){
@@ -34,6 +36,8 @@ public class SymbolInfo{
             this.returnType="";
             this.paramNumber = 0;
             paramList = new ArrayList<>();
+            this.arrayType="";
+
             //cout<<printingLine<<endl;
         }
         public SymbolInfo(String name, String type) {
